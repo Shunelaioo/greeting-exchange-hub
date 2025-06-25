@@ -86,22 +86,25 @@ const Analyze = () => {
             <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">How are you feeling right now?</h2>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-              {moodOptions.map((mood) => (
-                <button
-                  key={mood.value}
-                  onClick={() => setSelectedMood(mood.value)}
-                  className={`p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
-                    selectedMood === mood.value 
-                      ? `${mood.color} text-white border-transparent shadow-lg` 
-                      : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <mood.icon className={`h-8 w-8 mx-auto mb-2 ${selectedMood === mood.value ? 'text-white' : 'text-gray-600'}`} />
-                  <span className={`font-medium ${selectedMood === mood.value ? 'text-white' : 'text-gray-700'}`}>
-                    {mood.label}
-                  </span>
-                </button>
-              ))}
+              {moodOptions.map((mood) => {
+                const IconComponent = mood.icon;
+                return (
+                  <button
+                    key={mood.value}
+                    onClick={() => setSelectedMood(mood.value)}
+                    className={`p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
+                      selectedMood === mood.value 
+                        ? `${mood.color} text-white border-transparent shadow-lg` 
+                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <IconComponent className={`h-8 w-8 mx-auto mb-2 ${selectedMood === mood.value ? 'text-white' : 'text-gray-600'}`} />
+                    <span className={`font-medium ${selectedMood === mood.value ? 'text-white' : 'text-gray-700'}`}>
+                      {mood.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="text-center">
@@ -120,9 +123,14 @@ const Analyze = () => {
             <div className={`${moodResult.bgColor} ${moodResult.borderColor} border-2 rounded-2xl p-8 shadow-xl animate-fade-in`}>
               <div className="text-center mb-6">
                 <div className={`inline-flex p-4 rounded-full ${moodOptions.find(m => m.value === selectedMood)?.color} mb-4`}>
-                  {moodOptions.find(m => m.value === selectedMood)?.icon && (
-                    <moodOptions.find(m => m.value === selectedMood)!.icon className="h-8 w-8 text-white" />
-                  )}
+                  {(() => {
+                    const selectedMoodOption = moodOptions.find(m => m.value === selectedMood);
+                    if (selectedMoodOption) {
+                      const IconComponent = selectedMoodOption.icon;
+                      return <IconComponent className="h-8 w-8 text-white" />;
+                    }
+                    return null;
+                  })()}
                 </div>
                 <h3 className={`text-2xl font-bold ${moodResult.color} mb-4`}>Your Mood Analysis</h3>
                 <p className="text-gray-700 text-lg leading-relaxed">{moodResult.message}</p>
