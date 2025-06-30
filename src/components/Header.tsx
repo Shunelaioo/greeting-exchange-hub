@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Menu, X, Brain } from 'lucide-react';
+import { Menu, X, Brain, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Header = () => {
@@ -32,13 +32,24 @@ const Header = () => {
             </Link>
           </nav>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          {/* Login Button & Mobile Menu */}
+          <div className="flex items-center space-x-4">
+            <Link
+              to="/login"
+              className="hidden md:flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              <LogIn className="h-4 w-4" />
+              <span>Login</span>
+            </Link>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+            >
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -72,6 +83,14 @@ const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 History
+              </Link>
+              <Link 
+                to="/login" 
+                className="flex items-center space-x-2 text-purple-600 hover:text-purple-700 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Login</span>
               </Link>
             </div>
           </nav>

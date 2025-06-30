@@ -1,11 +1,12 @@
-
 import { useState } from 'react';
-import { BarChart3, TrendingUp, Calendar, Filter } from 'lucide-react';
+import { BarChart3, TrendingUp, Calendar as CalendarIcon, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 const History = () => {
   const [viewType, setViewType] = useState<'line' | 'bar'>('line');
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month');
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   // Mock data - in a real app, this would come from your database
   const mockData = [
@@ -41,6 +42,54 @@ const History = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const getMoodEmoji = (moodScore: number) => {
+    if (moodScore >= 9) return '😄';
+    if (moodScore >= 7) return '😊';
+    if (moodScore >= 5) return '😐';
+    if (moodScore >= 3) return '😔';
+    return '😢';
+  };
+
+  const getMoodData = (date: Date) => {
+    const dateString = date.toISOString().split('T')[0];
+    return mockData.find(data => data.date === dateString);
+  };
+
+  const generateCalendarDays = (month: Date) => {
+    const year = month.getFullYear();
+    const monthIndex = month.getMonth();
+    const firstDay = new Date(year, monthIndex, 1);
+    const lastDay = new Date(year, monthIndex + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, monthIndex, day));
+    }
+    
+    return days;
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prev => {
+      const newMonth = new Date(prev);
+      if (direction === 'prev') {
+        newMonth.setMonth(prev.getMonth() - 1);
+      } else {
+        newMonth.setMonth(prev.getMonth() + 1);
+      }
+      return newMonth;
+    });
   };
 
   const chartData = mockData.map(day => ({
@@ -103,7 +152,7 @@ const History = () => {
                   <p className="text-3xl font-bold text-purple-600">{mockData.length}</p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-full">
-                  <Calendar className="h-6 w-6 text-purple-600" />
+                  <CalendarIcon className="h-6 w-6 text-purple-600" />
                 </div>
               </div>
             </div>
@@ -117,7 +166,7 @@ const History = () => {
                 <span className="font-semibold text-gray-700">View Options:</span>
               </div>
               
-              <div className="flex space-x-4">
+              <div className="flex flex-wrap gap-4">
                 <div className="flex rounded-lg border border-gray-300 overflow-hidden">
                   <button
                     onClick={() => setViewType('line')}
@@ -136,6 +185,16 @@ const History = () => {
                     Bar Chart
                   </button>
                 </div>
+
+                <button
+                  onClick={() => setShowCalendar(!showCalendar)}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg border ${
+                    showCalendar ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <CalendarIcon className="h-4 w-4 inline mr-2" />
+                  Mood Calendar
+                </button>
                 
                 <select
                   value={timeRange}
@@ -149,6 +208,85 @@ const History = () => {
               </div>
             </div>
           </div>
+
+          {/* Mood Calendar */}
+          {showCalendar && (
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-800">Mood Calendar</h3>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => navigateMonth('prev')}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <span className="font-medium text-lg">
+                    {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </span>
+                  <button
+                    onClick={() => navigateMonth('next')}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-7 gap-2">
+                {/* Day headers */}
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-center text-sm font-medium text-gray-600 p-2">
+                    {day}
+                  </div>
+                ))}
+                
+                {/* Calendar days */}
+                {generateCalendarDays(currentMonth).map((day, index) => {
+                  if (!day) {
+                    return <div key={index} className="p-2"></div>;
+                  }
+                  
+                  const moodData = getMoodData(day);
+                  const emoji = moodData ? getMoodEmoji(moodData.mood) : '';
+                  
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className={`p-2 text-center rounded-lg hover:bg-gray-50 transition-colors ${
+                        moodData ? 'bg-blue-50 border border-blue-200' : ''
+                      }`}
+                    >
+                      <div className="text-sm text-gray-700">{day.getDate()}</div>
+                      {emoji && (
+                        <div className="text-lg mt-1" title={`Mood: ${moodData?.mood}/10`}>
+                          {emoji}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-4 flex items-center justify-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center space-x-1">
+                  <span>😢</span><span>Poor (1-2)</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span>😔</span><span>Low (3-4)</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span>😐</span><span>Okay (5-6)</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span>😊</span><span>Good (7-8)</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span>😄</span><span>Great (9-10)</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Chart */}
           <div className="bg-white rounded-xl shadow-lg p-6 mb-8">

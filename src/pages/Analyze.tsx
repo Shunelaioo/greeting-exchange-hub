@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Brain, Heart, Smile, Frown, Angry, Zap, MessageSquare } from 'lucide-react';
 
@@ -120,6 +119,12 @@ const Analyze = () => {
     setTextInput('');
   };
 
+  const handleChatbotClick = () => {
+    console.log('Emotional chatbot clicked for mood:', moodResult.detectedMood);
+    // TODO: Implement chatbot functionality
+    alert('Emotional chatbot feature will be available soon!');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-12">
       <div className="container mx-auto px-4">
@@ -131,7 +136,7 @@ const Analyze = () => {
             <p className="text-gray-600 text-lg">Select your mood or describe how you're feeling to receive personalized insights</p>
           </div>
 
-          {/* Analysis Method Selection */}
+          {/* Analysis Method Selection and Form */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
             <div className="flex justify-center mb-6">
               <div className="bg-gray-100 rounded-lg p-1 flex">
@@ -248,6 +253,19 @@ const Analyze = () => {
                   <h4 className={`font-semibold ${moodResult.color} mb-2`}>Support</h4>
                   <p className="text-gray-600 text-sm">If you need additional support, consider reaching out to friends, family, or mental health professionals.</p>
                 </div>
+              </div>
+
+              {/* Emotional Chatbot Button */}
+              <div className="text-center mb-6">
+                <button
+                  onClick={handleChatbotClick}
+                  className={`px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all transform hover:scale-105 shadow-lg flex items-center space-x-2 mx-auto`}
+                >
+                  <MessageSquare className="h-5 w-5" />
+                  <span>Chat with Emotional Support Bot</span>
+                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Optional</span>
+                </button>
+                <p className="text-xs text-gray-500 mt-2">Get personalized emotional support through our AI chatbot</p>
               </div>
 
               <div className="text-center">
