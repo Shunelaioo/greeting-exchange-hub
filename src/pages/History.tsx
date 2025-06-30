@@ -7,6 +7,7 @@ const History = () => {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month');
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [hoveredDay, setHoveredDay] = useState<string | null>(null);
 
   // Mock data - in a real app, this would come from your database
   const mockData = [
@@ -209,7 +210,7 @@ const History = () => {
             </div>
           </div>
 
-          {/* Mood Calendar */}
+          {/* Mood Calendar with Hover Effects */}
           {showCalendar && (
             <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
               <div className="flex items-center justify-between mb-6">
@@ -241,7 +242,7 @@ const History = () => {
                   </div>
                 ))}
                 
-                {/* Calendar days */}
+                {/* Calendar days with hover functionality */}
                 {generateCalendarDays(currentMonth).map((day, index) => {
                   if (!day) {
                     return <div key={index} className="p-2"></div>;
@@ -249,17 +250,23 @@ const History = () => {
                   
                   const moodData = getMoodData(day);
                   const emoji = moodData ? getMoodEmoji(moodData.mood) : '';
+                  const dayKey = day.toISOString();
                   
                   return (
                     <div
-                      key={day.toISOString()}
-                      className={`p-2 text-center rounded-lg hover:bg-gray-50 transition-colors ${
-                        moodData ? 'bg-blue-50 border border-blue-200' : ''
+                      key={dayKey}
+                      className={`p-2 text-center rounded-lg transition-all duration-200 cursor-pointer ${
+                        moodData ? 'hover:bg-blue-100 hover:border-blue-300 border border-transparent' : 'hover:bg-gray-50'
                       }`}
+                      onMouseEnter={() => moodData && setHoveredDay(dayKey)}
+                      onMouseLeave={() => setHoveredDay(null)}
                     >
-                      <div className="text-sm text-gray-700">{day.getDate()}</div>
-                      {emoji && (
-                        <div className="text-lg mt-1" title={`Mood: ${moodData?.mood}/10`}>
+                      <div className="text-sm text-gray-700 font-medium">{day.getDate()}</div>
+                      {emoji && hoveredDay === dayKey && (
+                        <div 
+                          className="text-2xl mt-1 animate-fade-in" 
+                          title={`Mood: ${moodData?.mood}/10`}
+                        >
                           {emoji}
                         </div>
                       )}
@@ -284,6 +291,10 @@ const History = () => {
                 <div className="flex items-center space-x-1">
                   <span>😄</span><span>Great (9-10)</span>
                 </div>
+              </div>
+              
+              <div className="mt-3 text-center text-xs text-gray-500">
+                Hover over a day to see your mood
               </div>
             </div>
           )}
