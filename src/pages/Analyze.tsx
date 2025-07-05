@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Brain, Heart, Smile, Frown, Angry, Zap, MessageSquare } from 'lucide-react';
+import EmotionalChatbot from '@/components/EmotionalChatbot';
 
 const Analyze = () => {
   const [selectedMood, setSelectedMood] = useState('');
   const [textInput, setTextInput] = useState('');
   const [moodResult, setMoodResult] = useState<any>(null);
   const [analysisMethod, setAnalysisMethod] = useState<'buttons' | 'text'>('buttons');
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const moodOptions = [
     { value: 'happy', label: 'Happy', icon: Smile, color: 'bg-yellow-500', theme: 'yellow', emoji: '😊' },
@@ -120,9 +122,7 @@ const Analyze = () => {
   };
 
   const handleChatbotClick = () => {
-    console.log('Emotional chatbot clicked for mood:', moodResult.detectedMood);
-    // TODO: Implement chatbot functionality
-    alert('Emotional chatbot feature will be available soon!');
+    setShowChatbot(true);
   };
 
   return (
@@ -263,7 +263,6 @@ const Analyze = () => {
                 >
                   <MessageSquare className="h-5 w-5" />
                   <span>Chat with Emotional Support Bot</span>
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Optional</span>
                 </button>
                 <p className="text-xs text-gray-500 mt-2">Get personalized emotional support through our AI chatbot</p>
               </div>
@@ -280,6 +279,15 @@ const Analyze = () => {
           )}
         </div>
       </div>
+
+      {/* Chatbot Modal */}
+      {showChatbot && (
+        <EmotionalChatbot
+          mood={moodResult?.detectedMood}
+          context={analysisMethod === 'text' ? textInput : undefined}
+          onClose={() => setShowChatbot(false)}
+        />
+      )}
     </div>
   );
 };
