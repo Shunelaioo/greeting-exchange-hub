@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Send, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, Loader2, Sparkles, Heart, Brain, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
@@ -92,78 +92,115 @@ const EmotionalChatbot = ({ mood, context, onClose }: EmotionalChatbotProps) => 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-2 rounded-full">
-              <MessageSquare className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800">Emotional Support Chat</h3>
-              <p className="text-sm text-gray-500">I'm here to listen and support you</p>
-            </div>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+      <div className="bg-gradient-to-br from-white via-purple-50/30 to-pink-50/30 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-3xl h-[85vh] flex flex-col border border-white/20 overflow-hidden">
+        {/* Header with floating elements */}
+        <div className="relative bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 p-6 text-white overflow-hidden">
+          {/* Floating decorative elements */}
+          <div className="absolute top-2 right-20 opacity-20">
+            <Sparkles className="h-8 w-8 animate-pulse" />
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
-          >
-            ×
-          </button>
+          <div className="absolute bottom-4 left-32 opacity-15">
+            <Heart className="h-6 w-6 animate-bounce" />
+          </div>
+          <div className="absolute top-8 left-16 opacity-10">
+            <Brain className="h-10 w-10 animate-pulse" />
+          </div>
+          
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="bg-white/20 backdrop-blur-sm p-3 rounded-2xl border border-white/30">
+                <MessageSquare className="h-7 w-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold mb-1">Emotional Support Chat</h3>
+                <p className="text-purple-100 flex items-center space-x-2">
+                  <Heart className="h-4 w-4" />
+                  <span>I'm here to listen and support you</span>
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-2 rounded-full transition-all duration-200 hover:scale-110 border border-white/30"
+            >
+              <X className="h-6 w-6 text-white" />
+            </button>
+          </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        {/* Messages with enhanced styling */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-transparent to-purple-50/20">
           {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'} animate-fade-in`}
             >
               <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                className={`max-w-xs lg:max-w-md px-6 py-4 rounded-3xl shadow-lg border transition-all duration-200 hover:scale-[1.02] ${
                   message.isUser
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-gray-100 text-gray-800'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-purple-200 shadow-purple-200/50'
+                    : 'bg-white/80 backdrop-blur-sm text-gray-800 border-white/50 shadow-gray-200/50'
                 }`}
               >
-                <p className="text-sm">{message.text}</p>
-                <p className={`text-xs mt-1 ${message.isUser ? 'text-purple-200' : 'text-gray-500'}`}>
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <p className="text-sm leading-relaxed font-medium">{message.text}</p>
+                <p className={`text-xs mt-2 flex items-center space-x-1 ${
+                  message.isUser ? 'text-purple-200' : 'text-gray-500'
+                }`}>
+                  <span>{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </p>
               </div>
             </div>
           ))}
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded-2xl">
-                <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="flex justify-start animate-fade-in">
+              <div className="bg-white/80 backdrop-blur-sm text-gray-800 px-6 py-4 rounded-3xl shadow-lg border border-white/50 flex items-center space-x-3">
+                <Loader2 className="h-5 w-5 animate-spin text-purple-600" />
+                <span className="text-sm font-medium text-purple-600">Thinking...</span>
               </div>
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
-        <div className="p-6 border-t border-gray-200">
-          <div className="flex space-x-3">
-            <textarea
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Share what's on your mind..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 resize-none"
-              rows={2}
-              disabled={isLoading}
-            />
+        {/* Enhanced input section */}
+        <div className="p-6 bg-gradient-to-r from-white/90 to-purple-50/90 backdrop-blur-sm border-t border-white/30">
+          <div className="flex space-x-4 items-end">
+            <div className="flex-1 relative">
+              <textarea
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Share what's on your mind... ✨"
+                className="w-full px-6 py-4 bg-white/90 backdrop-blur-sm border-2 border-purple-200/50 rounded-2xl focus:outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 resize-none transition-all duration-200 text-gray-700 placeholder-gray-400 shadow-sm"
+                rows={2}
+                disabled={isLoading}
+              />
+              <div className="absolute bottom-2 right-2 opacity-30">
+                <Sparkles className="h-4 w-4 text-purple-400" />
+              </div>
+            </div>
             <button
               onClick={sendMessage}
               disabled={!inputMessage.trim() || isLoading}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center space-x-2"
+              className="px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl hover:from-purple-700 hover:to-pink-700 transition-all duration-200 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:hover:scale-100"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
+              {!isLoading && <span className="font-medium">Send</span>}
             </button>
           </div>
+          
+          {/* Mood indicator */}
+          {mood && (
+            <div className="mt-4 flex items-center justify-center">
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-2 rounded-full border border-purple-200/50 shadow-sm">
+                <p className="text-sm text-purple-700 font-medium flex items-center space-x-2">
+                  <Heart className="h-4 w-4" />
+                  <span>Current mood: {mood}</span>
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
