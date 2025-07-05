@@ -22,6 +22,10 @@ serve(async (req) => {
       throw new Error('Message is required');
     }
 
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
     console.log('Received chat request:', { message, mood, context });
 
     const systemPrompt = `You are an empathetic emotional support AI assistant. Your role is to provide compassionate, understanding, and helpful responses to users who may be experiencing various emotional states.
@@ -57,8 +61,15 @@ Guidelines:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('OpenAI API error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      } else if (response.status === 401) {
+        throw new Error('Invalid API key. Please check your OpenAI API key configuration.');
+      } else {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
     }
 
     const data = await response.json();
