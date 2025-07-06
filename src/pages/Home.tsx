@@ -1,6 +1,6 @@
 
 import { Link } from 'react-router-dom';
-import { Brain, Calendar, BarChart3, Heart, Zap, Sun, Sparkles, Star, Moon, Rainbow, Butterfly, Flower2 } from 'lucide-react';
+import { Brain, Calendar, BarChart3, Heart, Zap, Sun, Sparkles, Star, Moon, Rainbow, Flower2 } from 'lucide-react';
 
 const Home = () => {
   const features = [
@@ -52,7 +52,7 @@ const Home = () => {
         <Heart className="absolute bottom-40 right-1/3 h-7 w-7 text-red-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '3s'}} />
         <Moon className="absolute top-80 left-20 h-8 w-8 text-indigo-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '2.5s'}} />
         <Rainbow className="absolute bottom-60 right-20 h-6 w-6 text-purple-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '4s'}} />
-        <Butterfly className="absolute top-96 right-1/4 h-7 w-7 text-pink-500 animate-float drop-shadow-lg" style={{animationDelay: '1.5s'}} />
+        <Flower2 className="absolute top-96 right-1/4 h-7 w-7 text-pink-500 animate-float drop-shadow-lg" style={{animationDelay: '1.5s'}} />
         <Flower2 className="absolute bottom-32 left-1/3 h-6 w-6 text-emerald-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '3.5s'}} />
         
         {/* Additional floating mini elements */}
@@ -90,23 +90,23 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-8 mb-20">
             <Link 
               to="/analyze"
-              className="group relative px-12 py-6 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-3xl font-bold text-xl hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-110 animate-glow overflow-hidden"
+              className="group relative px-16 py-8 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-3xl font-bold text-2xl hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-110 animate-glow overflow-hidden"
             >
               <span className="relative z-10 flex items-center justify-center">
-                <Sparkles className="mr-3 h-6 w-6 animate-spin" />
+                <Sparkles className="mr-4 h-8 w-8 animate-spin" />
                 Start Your Journey
-                <Heart className="ml-3 h-6 w-6 animate-pulse" />
+                <Heart className="ml-4 h-8 w-8 animate-pulse" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
             </Link>
             <Link 
               to="/journey"
-              className="group px-12 py-6 border-4 border-purple-600 text-purple-600 rounded-3xl font-bold text-xl hover:bg-purple-600 hover:text-white transition-all duration-500 shadow-xl hover:shadow-2xl transform hover:scale-110 glass-effect backdrop-blur-lg bg-white/30 hover:border-pink-500"
+              className="group px-16 py-8 border-4 border-purple-600 text-purple-600 rounded-3xl font-bold text-2xl hover:bg-purple-600 hover:text-white transition-all duration-500 shadow-xl hover:shadow-2xl transform hover:scale-110 glass-effect backdrop-blur-lg bg-white/30 hover:border-pink-500"
             >
               <span className="flex items-center justify-center">
-                <Calendar className="mr-3 h-6 w-6 group-hover:animate-bounce" />
+                <Calendar className="mr-4 h-8 w-8 group-hover:animate-bounce" />
                 Begin Adventure
-                <Star className="ml-3 h-6 w-6 group-hover:animate-spin" />
+                <Star className="ml-4 h-8 w-8 group-hover:animate-spin" />
               </span>
             </Link>
           </div>
