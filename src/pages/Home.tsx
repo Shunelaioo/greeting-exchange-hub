@@ -1,131 +1,156 @@
 
 import { Link } from 'react-router-dom';
-import { Brain, Calendar, BarChart3, Heart, Zap, Sun, Sparkles, Star, Moon } from 'lucide-react';
+import { Brain, Calendar, BarChart3, Heart, Zap, Sun, Sparkles, Star, Moon, Rainbow, Butterfly, Flower2 } from 'lucide-react';
 
 const Home = () => {
   const features = [
     {
       icon: Brain,
       title: "Analyze My Mood",
-      description: "Get instant insights into your current emotional state with our advanced mood analysis.",
+      description: "Get instant insights into your current emotional state with our advanced mood analysis powered by AI magic.",
       link: "/analyze",
       gradient: "from-purple-400 via-pink-500 to-red-500",
       iconBg: "bg-gradient-to-r from-purple-100 to-pink-100",
-      iconColor: "text-purple-600"
+      iconColor: "text-purple-600",
+      hoverGradient: "from-purple-500 via-pink-600 to-red-600"
     },
     {
       icon: Calendar,
       title: "Mood Journey",
-      description: "Track your daily emotions, weather conditions, sleep patterns, and receive personalized support.",
+      description: "Track your daily emotions, weather conditions, sleep patterns, and receive personalized support on your wellness adventure.",
       link: "/journey",
       gradient: "from-blue-400 via-cyan-500 to-teal-500",
       iconBg: "bg-gradient-to-r from-blue-100 to-cyan-100",
-      iconColor: "text-blue-600"
+      iconColor: "text-blue-600",
+      hoverGradient: "from-blue-500 via-cyan-600 to-teal-600"
     },
     {
       icon: BarChart3,
       title: "Mood History",
-      description: "Visualize your emotional patterns and track your progress over time with detailed graphs.",
+      description: "Visualize your emotional patterns and track your progress over time with beautiful, detailed graphs and insights.",
       link: "/history",
       gradient: "from-green-400 via-emerald-500 to-teal-500",
       iconBg: "bg-gradient-to-r from-green-100 to-emerald-100",
-      iconColor: "text-green-600"
+      iconColor: "text-green-600",
+      hoverGradient: "from-green-500 via-emerald-600 to-teal-600"
     }
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-100 relative overflow-hidden">
-      {/* Floating Background Elements */}
+      {/* Enhanced Floating Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-gradient-to-r from-purple-300/30 to-pink-300/30 animate-float"></div>
-        <div className="absolute top-40 right-20 w-32 h-32 rounded-full bg-gradient-to-r from-blue-300/30 to-cyan-300/30 animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-20 left-1/4 w-48 h-48 rounded-full bg-gradient-to-r from-green-300/30 to-emerald-300/30 animate-float" style={{animationDelay: '4s'}}></div>
+        {/* Large floating orbs */}
+        <div className="absolute top-20 left-10 w-80 h-80 rounded-full bg-gradient-to-r from-purple-300/30 to-pink-300/30 animate-float blur-xl"></div>
+        <div className="absolute top-40 right-20 w-64 h-64 rounded-full bg-gradient-to-r from-blue-300/30 to-cyan-300/30 animate-float blur-lg" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-20 left-1/4 w-72 h-72 rounded-full bg-gradient-to-r from-green-300/30 to-emerald-300/30 animate-float blur-xl" style={{animationDelay: '4s'}}></div>
+        <div className="absolute top-1/3 right-1/3 w-48 h-48 rounded-full bg-gradient-to-r from-yellow-300/40 to-orange-300/40 animate-float blur-lg" style={{animationDelay: '1s'}}></div>
         
-        {/* Sparkle elements */}
-        <Sparkles className="absolute top-32 right-1/4 h-6 w-6 text-yellow-400 animate-sparkle" />
-        <Star className="absolute top-64 left-1/3 h-4 w-4 text-pink-400 animate-sparkle" style={{animationDelay: '1s'}} />
-        <Heart className="absolute bottom-40 right-1/3 h-5 w-5 text-red-400 animate-sparkle" style={{animationDelay: '3s'}} />
-        <Moon className="absolute top-80 left-20 h-6 w-6 text-indigo-400 animate-sparkle" style={{animationDelay: '2.5s'}} />
+        {/* Enhanced sparkle elements */}
+        <Sparkles className="absolute top-32 right-1/4 h-8 w-8 text-yellow-400 animate-sparkle drop-shadow-lg" />
+        <Star className="absolute top-64 left-1/3 h-6 w-6 text-pink-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '1s'}} />
+        <Heart className="absolute bottom-40 right-1/3 h-7 w-7 text-red-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '3s'}} />
+        <Moon className="absolute top-80 left-20 h-8 w-8 text-indigo-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '2.5s'}} />
+        <Rainbow className="absolute bottom-60 right-20 h-6 w-6 text-purple-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '4s'}} />
+        <Butterfly className="absolute top-96 right-1/4 h-7 w-7 text-pink-500 animate-float drop-shadow-lg" style={{animationDelay: '1.5s'}} />
+        <Flower2 className="absolute bottom-32 left-1/3 h-6 w-6 text-emerald-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '3.5s'}} />
+        
+        {/* Additional floating mini elements */}
+        <div className="absolute top-1/4 left-1/2 w-4 h-4 bg-yellow-300 rounded-full animate-bounce opacity-60" style={{animationDelay: '0.5s'}}></div>
+        <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-pink-300 rounded-full animate-bounce opacity-70" style={{animationDelay: '1.2s'}}></div>
+        <div className="absolute top-3/4 left-1/4 w-5 h-5 bg-blue-300 rounded-full animate-bounce opacity-50" style={{animationDelay: '2.1s'}}></div>
       </div>
 
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 relative z-10">
-        <div className="text-center max-w-5xl mx-auto animate-fade-in">
-          <div className="flex justify-center mb-8">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur-lg opacity-75 animate-glow"></div>
-              <div className="relative p-6 bg-white/90 backdrop-blur-sm rounded-full shadow-2xl border border-white/50">
-                <Brain className="h-20 w-20 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600" />
+        <div className="text-center max-w-6xl mx-auto animate-fade-in">
+          <div className="flex justify-center mb-12">
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 rounded-full blur-2xl opacity-75 animate-glow group-hover:opacity-90 transition-opacity"></div>
+              <div className="absolute inset-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full blur-lg opacity-50 animate-pulse"></div>
+              <div className="relative p-8 bg-white/90 backdrop-blur-sm rounded-full shadow-2xl border-4 border-white/80 group-hover:scale-110 transition-transform duration-500">
+                <Brain className="h-24 w-24 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 animate-pulse" />
               </div>
             </div>
           </div>
           
-          <h1 className="text-6xl md:text-7xl font-bold text-gray-800 mb-8 leading-tight">
+          <h1 className="text-7xl md:text-8xl font-black text-gray-800 mb-8 leading-tight tracking-tight">
             Understand Your
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 animate-gradient">
-              Emotions
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 animate-gradient drop-shadow-lg">
+              Beautiful Mind
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-600 mb-12 leading-relaxed max-w-3xl mx-auto">
-            Discover patterns in your mood, track your emotional journey, and receive 
-            personalized insights to support your mental wellness with our AI-powered companion.
+          <p className="text-2xl md:text-3xl text-gray-700 mb-16 leading-relaxed max-w-4xl mx-auto font-medium">
+            Discover the magic in your emotions, track your wellness journey, and receive 
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-bold"> personalized insights </span>
+            to nurture your mental health with our AI-powered companion ✨
           </p>
           
-          <div className="flex flex-col sm:flex-row justify-center gap-6 mb-16">
+          <div className="flex flex-col sm:flex-row justify-center gap-8 mb-20">
             <Link 
               to="/analyze"
-              className="group relative px-10 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold text-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 animate-glow"
+              className="group relative px-12 py-6 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-3xl font-bold text-xl hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-110 animate-glow overflow-hidden"
             >
-              <span className="relative z-10">Start Analysis</span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-lg"></div>
+              <span className="relative z-10 flex items-center justify-center">
+                <Sparkles className="mr-3 h-6 w-6 animate-spin" />
+                Start Your Journey
+                <Heart className="ml-3 h-6 w-6 animate-pulse" />
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
             </Link>
             <Link 
               to="/journey"
-              className="group px-10 py-4 border-3 border-purple-600 text-purple-600 rounded-2xl font-bold text-lg hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 glass-effect"
+              className="group px-12 py-6 border-4 border-purple-600 text-purple-600 rounded-3xl font-bold text-xl hover:bg-purple-600 hover:text-white transition-all duration-500 shadow-xl hover:shadow-2xl transform hover:scale-110 glass-effect backdrop-blur-lg bg-white/30 hover:border-pink-500"
             >
-              Begin Journey
+              <span className="flex items-center justify-center">
+                <Calendar className="mr-3 h-6 w-6 group-hover:animate-bounce" />
+                Begin Adventure
+                <Star className="ml-3 h-6 w-6 group-hover:animate-spin" />
+              </span>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="container mx-auto px-4 py-20 relative z-10">
-        <div className="text-center mb-16 animate-fade-in">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">Choose Your Path</h2>
-          <p className="text-gray-600 text-xl max-w-2xl mx-auto">Select how you'd like to explore your emotional well-being with our beautiful, intuitive tools</p>
+      {/* Enhanced Features Section */}
+      <section className="container mx-auto px-4 py-24 relative z-10">
+        <div className="text-center mb-20 animate-fade-in">
+          <h2 className="text-6xl md:text-7xl font-black text-gray-800 mb-8 tracking-tight">Choose Your Path</h2>
+          <p className="text-gray-700 text-2xl max-w-3xl mx-auto font-medium leading-relaxed">Select how you'd like to explore your emotional well-being with our magical, intuitive tools</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-8xl mx-auto">
           {features.map((feature, index) => (
             <Link 
               key={index}
               to={feature.link}
-              className="group animate-fade-in card-hover"
-              style={{animationDelay: `${index * 0.2}s`}}
+              className="group animate-fade-in transform hover:scale-105 transition-all duration-500"
+              style={{animationDelay: `${index * 0.3}s`}}
             >
-              <div className="relative p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-xl border border-white/50 overflow-hidden">
-                {/* Background gradient effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
+              <div className="relative p-10 bg-white/90 backdrop-blur-lg rounded-4xl shadow-2xl border-2 border-white/60 overflow-hidden hover:shadow-3xl transition-all duration-500 hover:border-purple-300/50">
+                {/* Enhanced background gradient effect */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-700`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${feature.hoverGradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-xl`}></div>
                 
                 <div className="relative z-10">
-                  <div className={`inline-flex p-6 rounded-3xl ${feature.iconBg} mb-8 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    <feature.icon className={`h-10 w-10 ${feature.iconColor}`} />
+                  <div className={`inline-flex p-8 rounded-4xl ${feature.iconBg} mb-10 group-hover:scale-125 transition-transform duration-500 shadow-xl group-hover:shadow-2xl border-2 border-white/50`}>
+                    <feature.icon className={`h-12 w-12 ${feature.iconColor} group-hover:animate-pulse`} />
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4 group-hover:text-purple-700 transition-colors">
+                  <h3 className="text-3xl font-black text-gray-800 mb-6 group-hover:text-purple-700 transition-colors duration-300">
                     {feature.title}
                   </h3>
                   
-                  <p className="text-gray-600 leading-relaxed mb-6 text-lg">
+                  <p className="text-gray-600 leading-relaxed mb-8 text-lg font-medium">
                     {feature.description}
                   </p>
                   
-                  <div className="inline-flex items-center text-purple-600 font-bold text-lg group-hover:text-purple-700">
+                  <div className="inline-flex items-center text-purple-600 font-bold text-xl group-hover:text-purple-700 group-hover:scale-110 transition-all duration-300">
+                    <Sparkles className="mr-2 h-5 w-5 group-hover:animate-spin" />
                     Get Started
-                    <svg className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <svg className="ml-4 h-6 w-6 group-hover:translate-x-3 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
                 </div>
@@ -135,37 +160,38 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="bg-gradient-to-r from-white/90 to-purple-50/90 backdrop-blur-sm py-20 relative">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-6">Why Track Your Mood?</h2>
-            <p className="text-gray-600 text-xl max-w-2xl mx-auto">Understanding your emotions leads to better mental health and a more fulfilling life</p>
+      {/* Enhanced Benefits Section */}
+      <section className="bg-gradient-to-r from-white/95 via-purple-50/95 to-pink-50/95 backdrop-blur-sm py-24 relative border-y-4 border-purple-200/30">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-100/20 to-pink-100/20"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-20 animate-fade-in">
+            <h2 className="text-6xl md:text-7xl font-black text-gray-800 mb-8 tracking-tight">Why Track Your Mood?</h2>
+            <p className="text-gray-700 text-2xl max-w-3xl mx-auto font-medium leading-relaxed">Understanding your emotions leads to better mental health and a more fulfilling, joyful life ✨</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-            <div className="text-center animate-fade-in card-hover p-8 bg-white/60 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50" style={{animationDelay: '0.1s'}}>
-              <div className="inline-flex p-6 bg-gradient-to-r from-red-100 to-pink-100 text-red-600 rounded-full mb-6 shadow-lg">
-                <Heart className="h-10 w-10" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-7xl mx-auto">
+            <div className="text-center animate-fade-in transform hover:scale-105 transition-all duration-500 p-10 bg-white/80 backdrop-blur-sm rounded-4xl shadow-xl border-2 border-white/60 hover:shadow-2xl group" style={{animationDelay: '0.1s'}}>
+              <div className="inline-flex p-8 bg-gradient-to-r from-red-100 via-pink-100 to-rose-100 text-red-600 rounded-full mb-8 shadow-xl group-hover:scale-110 transition-transform duration-500 border-2 border-pink-200/50">
+                <Heart className="h-12 w-12 group-hover:animate-pulse" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Better Self-Awareness</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">Recognize patterns and triggers in your emotional responses with detailed insights</p>
+              <h3 className="text-3xl font-black text-gray-800 mb-6 group-hover:text-red-600 transition-colors">Better Self-Awareness</h3>
+              <p className="text-gray-600 text-lg leading-relaxed font-medium">Recognize patterns and triggers in your emotional responses with detailed, loving insights that help you grow</p>
             </div>
 
-            <div className="text-center animate-fade-in card-hover p-8 bg-white/60 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50" style={{animationDelay: '0.3s'}}>
-              <div className="inline-flex p-6 bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-600 rounded-full mb-6 shadow-lg">
-                <Zap className="h-10 w-10" />
+            <div className="text-center animate-fade-in transform hover:scale-105 transition-all duration-500 p-10 bg-white/80 backdrop-blur-sm rounded-4xl shadow-xl border-2 border-white/60 hover:shadow-2xl group" style={{animationDelay: '0.3s'}}>
+              <div className="inline-flex p-8 bg-gradient-to-r from-yellow-100 via-orange-100 to-amber-100 text-yellow-600 rounded-full mb-8 shadow-xl group-hover:scale-110 transition-transform duration-500 border-2 border-yellow-200/50">
+                <Zap className="h-12 w-12 group-hover:animate-bounce" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Improved Well-being</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">Make informed decisions about your mental health and lifestyle choices</p>
+              <h3 className="text-3xl font-black text-gray-800 mb-6 group-hover:text-yellow-600 transition-colors">Improved Well-being</h3>
+              <p className="text-gray-600 text-lg leading-relaxed font-medium">Make informed, positive decisions about your mental health and lifestyle choices with confidence and joy</p>
             </div>
 
-            <div className="text-center animate-fade-in card-hover p-8 bg-white/60 backdrop-blur-sm rounded-3xl shadow-lg border border-white/50" style={{animationDelay: '0.5s'}}>
-              <div className="inline-flex p-6 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-600 rounded-full mb-6 shadow-lg">
-                <Sun className="h-10 w-10" />
+            <div className="text-center animate-fade-in transform hover:scale-105 transition-all duration-500 p-10 bg-white/80 backdrop-blur-sm rounded-4xl shadow-xl border-2 border-white/60 hover:shadow-2xl group" style={{animationDelay: '0.5s'}}>
+              <div className="inline-flex p-8 bg-gradient-to-r from-orange-100 via-yellow-100 to-lime-100 text-orange-600 rounded-full mb-8 shadow-xl group-hover:scale-110 transition-transform duration-500 border-2 border-orange-200/50">
+                <Sun className="h-12 w-12 group-hover:animate-spin" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Positive Growth</h3>
-              <p className="text-gray-600 text-lg leading-relaxed">Track your progress and celebrate your emotional development journey</p>
+              <h3 className="text-3xl font-black text-gray-800 mb-6 group-hover:text-orange-600 transition-colors">Positive Growth</h3>
+              <p className="text-gray-600 text-lg leading-relaxed font-medium">Track your beautiful progress and celebrate your emotional development journey with pride and happiness</p>
             </div>
           </div>
         </div>
