@@ -38,7 +38,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-100 relative overflow-hidden">
-      {/* Enhanced Floating Background Elements - Removed large circle */}
+      {/* Enhanced Floating Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Medium floating orbs */}
         <div className="absolute top-40 right-20 w-64 h-64 rounded-full bg-gradient-to-r from-blue-300/30 to-cyan-300/30 animate-float blur-lg" style={{animationDelay: '2s'}}></div>
@@ -63,49 +63,53 @@ const Home = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 relative z-10">
         <div className="text-center max-w-6xl mx-auto animate-fade-in">
-          <div className="flex justify-center mb-12">
+          <div className="flex justify-center mb-8">
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 rounded-full blur-2xl opacity-75 animate-glow group-hover:opacity-90 transition-opacity"></div>
-              <div className="absolute inset-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full blur-lg opacity-50 animate-pulse"></div>
-              <div className="relative p-8 bg-white/90 backdrop-blur-sm rounded-full shadow-2xl border-4 border-white/80 group-hover:scale-110 transition-transform duration-500">
-                <Brain className="h-24 w-24 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 rounded-full blur-xl opacity-60 animate-glow group-hover:opacity-90 transition-opacity"></div>
+              <div className="absolute inset-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full blur-lg opacity-40 animate-pulse"></div>
+              <div className="relative p-6 bg-white/90 backdrop-blur-sm rounded-full shadow-2xl border-4 border-white/80 group-hover:scale-110 transition-transform duration-500 animate-float">
+                <Brain className="h-16 w-16 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 animate-pulse" />
               </div>
+              {/* Magical sparkles around the brain */}
+              <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-yellow-400 animate-sparkle" />
+              <Star className="absolute -bottom-2 -left-2 h-5 w-5 text-pink-400 animate-sparkle" style={{animationDelay: '1s'}} />
+              <Heart className="absolute top-1/2 -right-4 h-4 w-4 text-red-400 animate-sparkle" style={{animationDelay: '0.5s'}} />
             </div>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-black text-gray-800 mb-8 leading-tight tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-black text-gray-800 mb-6 leading-tight tracking-tight">
             Understand Your
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600 animate-gradient drop-shadow-lg">
               Beautiful Mind
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-700 mb-16 leading-relaxed max-w-4xl mx-auto font-medium">
+          <p className="text-lg md:text-xl text-gray-700 mb-12 leading-relaxed max-w-4xl mx-auto font-medium">
             Discover the magic in your emotions, track your wellness journey, and receive 
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 font-bold"> personalized insights </span>
             to nurture your mental health with our AI-powered companion ✨
           </p>
           
-          <div className="flex flex-col sm:flex-row justify-center gap-6 mb-20">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
             <Link 
               to="/analyze"
-              className="group relative px-8 py-4 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-2xl font-bold text-lg hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-105 animate-glow overflow-hidden"
+              className="group relative px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-2xl font-bold text-base hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-105 animate-glow overflow-hidden"
             >
               <span className="relative z-10 flex items-center justify-center">
-                <Sparkles className="mr-3 h-6 w-6 animate-spin" />
+                <Sparkles className="mr-2 h-5 w-5 animate-spin" />
                 Start Your Journey
-                <Heart className="ml-3 h-6 w-6 animate-pulse" />
+                <Heart className="ml-2 h-5 w-5 animate-pulse" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
             </Link>
             <Link 
               to="/journey"
-              className="group px-8 py-4 border-3 border-purple-600 text-purple-600 rounded-2xl font-bold text-lg hover:bg-purple-600 hover:text-white transition-all duration-500 shadow-xl hover:shadow-2xl transform hover:scale-105 glass-effect backdrop-blur-lg bg-white/30 hover:border-pink-500"
+              className="group px-6 py-3 border-3 border-purple-600 text-purple-600 rounded-2xl font-bold text-base hover:bg-purple-600 hover:text-white transition-all duration-500 shadow-xl hover:shadow-2xl transform hover:scale-105 glass-effect backdrop-blur-lg bg-white/30 hover:border-pink-500"
             >
               <span className="flex items-center justify-center">
-                <Calendar className="mr-3 h-6 w-6 group-hover:animate-bounce" />
+                <Calendar className="mr-2 h-5 w-5 group-hover:animate-bounce" />
                 Begin Adventure
-                <Star className="ml-3 h-6 w-6 group-hover:animate-spin" />
+                <Star className="ml-2 h-5 w-5 group-hover:animate-spin" />
               </span>
             </Link>
           </div>

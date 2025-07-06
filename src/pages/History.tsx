@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { BarChart3, TrendingUp, Calendar as CalendarIcon, Filter, ChevronLeft, ChevronRight, Sparkles, Heart, Star } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -114,7 +115,7 @@ const History = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
-          {/* Enhanced Header */}
+          {/* Enhanced Header with matching Home page font sizes */}
           <div className="text-center mb-12 animate-fade-in">
             <div className="flex justify-center mb-6">
               <div className="relative group">
@@ -124,22 +125,22 @@ const History = () => {
                 </div>
               </div>
             </div>
-            <h1 className="text-6xl md:text-7xl font-black text-gray-800 mb-6 leading-tight">
+            <h1 className="text-4xl md:text-5xl font-black text-gray-800 mb-4 leading-tight">
               Your Mood
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 animate-gradient">
                 Journey History
               </span>
             </h1>
-            <p className="text-gray-600 text-2xl font-medium max-w-3xl mx-auto">Track your emotional patterns and celebrate your beautiful progress over time ✨</p>
+            <p className="text-gray-600 text-lg font-medium max-w-3xl mx-auto">Track your emotional patterns and celebrate your beautiful progress over time ✨</p>
           </div>
 
-          {/* Enhanced Stats Cards */}
+          {/* Enhanced Stats Cards with matching font sizes */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="bg-gradient-to-br from-white/95 to-blue-50/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border-2 border-white/50 hover:shadow-3xl transition-all duration-500 group animate-fade-in hover:scale-105">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-lg font-medium mb-2">Average Mood</p>
-                  <p className="text-4xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{getAverageMood()}/10</p>
+                  <p className="text-gray-600 text-base font-medium mb-2">Average Mood</p>
+                  <p className="text-3xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{getAverageMood()}/10</p>
                 </div>
                 <div className="p-6 bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-500">
                   <BarChart3 className="h-8 w-8 text-blue-600 group-hover:animate-pulse" />
@@ -150,8 +151,8 @@ const History = () => {
             <div className="bg-gradient-to-br from-white/95 to-green-50/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border-2 border-white/50 hover:shadow-3xl transition-all duration-500 group animate-fade-in hover:scale-105" style={{animationDelay: '0.2s'}}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-lg font-medium mb-2">Trend</p>
-                  <p className={`text-2xl font-black capitalize ${
+                  <p className="text-gray-600 text-base font-medium mb-2">Trend</p>
+                  <p className={`text-xl font-black capitalize ${
                     getTrend() === 'improving' ? 'text-green-600' : 
                     getTrend() === 'declining' ? 'text-red-600' : 'text-yellow-600'
                   }`}>
@@ -173,8 +174,8 @@ const History = () => {
             <div className="bg-gradient-to-br from-white/95 to-purple-50/80 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border-2 border-white/50 hover:shadow-3xl transition-all duration-500 group animate-fade-in hover:scale-105" style={{animationDelay: '0.4s'}}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-lg font-medium mb-2">Days Tracked</p>
-                  <p className="text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{mockData.length}</p>
+                  <p className="text-gray-600 text-base font-medium mb-2">Days Tracked</p>
+                  <p className="text-3xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{mockData.length}</p>
                 </div>
                 <div className="p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-500">
                   <CalendarIcon className="h-8 w-8 text-purple-600 group-hover:animate-pulse" />
@@ -183,21 +184,21 @@ const History = () => {
             </div>
           </div>
 
-          {/* Enhanced Controls */}
+          {/* Enhanced Controls with matching font sizes */}
           <div className="bg-gradient-to-r from-white/95 via-purple-50/90 to-pink-50/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 mb-12 border-2 border-white/50 animate-fade-in" style={{animationDelay: '0.6s'}}>
             <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl">
                   <Filter className="h-6 w-6 text-purple-600" />
                 </div>
-                <span className="font-bold text-xl text-gray-800">View Options:</span>
+                <span className="font-bold text-lg text-gray-800">View Options:</span>
               </div>
               
               <div className="flex flex-wrap gap-4">
                 <div className="flex rounded-xl border-2 border-purple-200 overflow-hidden shadow-lg">
                   <button
                     onClick={() => setViewType('line')}
-                    className={`px-6 py-3 text-lg font-bold transition-all duration-300 ${
+                    className={`px-5 py-3 text-base font-bold transition-all duration-300 ${
                       viewType === 'line' ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50'
                     }`}
                   >
@@ -205,7 +206,7 @@ const History = () => {
                   </button>
                   <button
                     onClick={() => setViewType('bar')}
-                    className={`px-6 py-3 text-lg font-bold transition-all duration-300 ${
+                    className={`px-5 py-3 text-base font-bold transition-all duration-300 ${
                       viewType === 'bar' ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg' : 'bg-white text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50'
                     }`}
                   >
@@ -215,7 +216,7 @@ const History = () => {
 
                 <button
                   onClick={() => setShowCalendar(!showCalendar)}
-                  className={`flex items-center px-6 py-3 text-lg font-bold rounded-xl border-2 transition-all duration-500 shadow-lg hover:scale-105 ${
+                  className={`flex items-center px-5 py-3 text-base font-bold rounded-xl border-2 transition-all duration-500 shadow-lg hover:scale-105 ${
                     showCalendar ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-purple-600 animate-glow' : 'bg-white text-gray-700 border-purple-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50'
                   }`}
                 >
@@ -227,7 +228,7 @@ const History = () => {
                 <select
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value as 'week' | 'month' | 'year')}
-                  className="px-6 py-3 border-2 border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 text-lg font-medium bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300"
+                  className="px-5 py-3 border-2 border-purple-200 rounded-xl focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 text-base font-medium bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300"
                 >
                   <option value="week">Last Week</option>
                   <option value="month">Last Month</option>
@@ -237,11 +238,11 @@ const History = () => {
             </div>
           </div>
 
-          {/* Mood Calendar with Hover Effects */}
+          {/* Mood Calendar with adjusted font sizes */}
           {showCalendar && (
             <div className="bg-gradient-to-r from-white/95 via-blue-50/90 to-purple-50/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 mb-12 border-2 border-white/50 animate-fade-in">
               <div className="flex items-center justify-between mb-8">
-                <h3 className="text-3xl font-black text-gray-800">Mood Calendar ✨</h3>
+                <h3 className="text-2xl font-black text-gray-800">Mood Calendar ✨</h3>
                 <div className="flex items-center space-x-4">
                   <button
                     onClick={() => navigateMonth('prev')}
@@ -249,7 +250,7 @@ const History = () => {
                   >
                     <ChevronLeft className="h-6 w-6" />
                   </button>
-                  <span className="font-bold text-2xl text-gray-800">
+                  <span className="font-bold text-xl text-gray-800">
                     {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                   </span>
                   <button
@@ -264,7 +265,7 @@ const History = () => {
               <div className="grid grid-cols-7 gap-3">
                 {/* Day headers */}
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="text-center text-lg font-black text-gray-700 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
+                  <div key={day} className="text-center text-base font-black text-gray-700 p-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg">
                     {day}
                   </div>
                 ))}
@@ -290,10 +291,10 @@ const History = () => {
                       onMouseEnter={() => moodData && setHoveredDay(dayKey)}
                       onMouseLeave={() => setHoveredDay(null)}
                     >
-                      <div className="text-lg text-gray-800 font-bold mb-1">{day.getDate()}</div>
+                      <div className="text-base text-gray-800 font-bold mb-1">{day.getDate()}</div>
                       {emoji && hoveredDay === dayKey && (
                         <div 
-                          className="text-3xl animate-fade-in animate-bounce" 
+                          className="text-2xl animate-fade-in animate-bounce" 
                           title={`Mood: ${moodData?.mood}/10`}
                         >
                           {emoji}
@@ -304,7 +305,7 @@ const History = () => {
                 })}
               </div>
 
-              <div className="mt-6 flex items-center justify-center space-x-6 text-lg text-gray-700 font-medium">
+              <div className="mt-6 flex items-center justify-center space-x-6 text-base text-gray-700 font-medium">
                 <div className="flex items-center space-x-2 bg-white/60 px-4 py-2 rounded-full">
                   <span>😢</span><span>Poor (1-2)</span>
                 </div>
@@ -322,15 +323,15 @@ const History = () => {
                 </div>
               </div>
               
-              <div className="mt-4 text-center text-lg text-gray-600 font-medium">
+              <div className="mt-4 text-center text-base text-gray-600 font-medium">
                 Hover over a day to see your mood emoji! ✨
               </div>
             </div>
           )}
 
-          {/* Chart */}
+          {/* Chart with matching font sizes */}
           <div className="bg-gradient-to-r from-white/95 via-blue-50/90 to-green-50/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 mb-12 border-2 border-white/50 animate-fade-in" style={{animationDelay: '0.8s'}}>
-            <h3 className="text-3xl font-black text-gray-800 mb-8 text-center">Mood & Sleep Patterns 📊</h3>
+            <h3 className="text-2xl font-black text-gray-800 mb-8 text-center">Mood & Sleep Patterns 📊</h3>
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 {viewType === 'line' ? (
@@ -410,18 +411,18 @@ const History = () => {
             </div>
           </div>
 
-          {/* Insights */}
+          {/* Insights with matching font sizes */}
           <div className="bg-gradient-to-r from-purple-100/90 via-pink-100/90 to-blue-100/90 backdrop-blur-lg rounded-2xl p-12 shadow-2xl border-2 border-white/50 animate-fade-in" style={{animationDelay: '1s'}}>
-            <h3 className="text-4xl font-black text-gray-800 mb-10 text-center">Your Beautiful Insights ✨</h3>
+            <h3 className="text-3xl font-black text-gray-800 mb-10 text-center">Your Beautiful Insights ✨</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border-2 border-white/60 hover:shadow-2xl transition-all duration-500 hover:scale-105 group">
                 <div className="flex items-center mb-4">
                   <div className="p-3 bg-gradient-to-r from-blue-100 to-purple-100 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
                     <span className="text-2xl">💤</span>
                   </div>
-                  <h4 className="font-black text-2xl text-gray-800">Sleep Impact</h4>
+                  <h4 className="font-black text-xl text-gray-800">Sleep Impact</h4>
                 </div>
-                <p className="text-gray-700 text-lg leading-relaxed font-medium">
+                <p className="text-gray-700 text-base leading-relaxed font-medium">
                   Your mood tends to be higher on days when you get better sleep. 
                   Consider maintaining a consistent sleep schedule for better emotional well-being and more joyful days! 🌙
                 </p>
@@ -432,9 +433,9 @@ const History = () => {
                   <div className="p-3 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
                     <span className="text-2xl">☀️</span>
                   </div>
-                  <h4 className="font-black text-2xl text-gray-800">Weather Correlation</h4>
+                  <h4 className="font-black text-xl text-gray-800">Weather Correlation</h4>
                 </div>
-                <p className="text-gray-700 text-lg leading-relaxed font-medium">
+                <p className="text-gray-700 text-base leading-relaxed font-medium">
                   Sunny days appear to positively influence your mood! 
                   On cloudy or rainy days, try indoor activities that bring you joy and light up your beautiful soul. 🌈
                 </p>
