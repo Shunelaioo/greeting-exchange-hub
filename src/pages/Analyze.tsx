@@ -47,44 +47,70 @@ const Analyze = () => {
         return analyzeTextMoodFallback(text);
       }
 
-      // Using Hugging Face's free sentiment analysis API
-      const response = await fetch(
-        "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment-latest",
-        {
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          method: "POST",
-          body: JSON.stringify({ inputs: text }),
+      // Try a different model that's more accessible
+      const models = [
+        "cardiffnlp/twitter-roberta-base-sentiment-latest",
+        "nlptown/bert-base-multilingual-uncased-sentiment", 
+        "j-hartmann/emotion-english-distilroberta-base"
+      ];
+
+      let result = null;
+      
+      for (const model of models) {
+        try {
+          console.log(`Trying model: ${model}`);
+          const response = await fetch(
+            `https://api-inference.huggingface.co/models/${model}`,
+            {
+              headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+              },
+              method: "POST",
+              body: JSON.stringify({ inputs: text }),
+            }
+          );
+
+          if (response.ok) {
+            result = await response.json();
+            console.log(`Success with model ${model}:`, result);
+            break;
+          } else {
+            const errorData = await response.json();
+            console.log(`Model ${model} failed:`, errorData);
+            continue;
+          }
+        } catch (modelError) {
+          console.log(`Model ${model} error:`, modelError);
+          continue;
         }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error:', errorData);
-        throw new Error('Failed to analyze mood');
       }
 
-      const result = await response.json();
-      console.log('API Response:', result);
-      
-      // The API returns sentiment labels like LABEL_0 (negative), LABEL_1 (neutral), LABEL_2 (positive)
-      // We'll map these to our mood categories
-      if (result && result[0]) {
-        const topSentiment = result[0][0]; // Get the highest confidence result
-        return mapSentimentToMood(topSentiment.label, topSentiment.score, text);
+      if (!result) {
+        throw new Error('All models failed');
       }
       
-      return 'calm'; // default fallback
+      // Handle different response formats
+      if (Array.isArray(result) && result.length > 0) {
+        if (Array.isArray(result[0])) {
+          // Format: [[{label: "POSITIVE", score: 0.9}]]
+          const topSentiment = result[0][0];
+          return mapSentimentToMood(topSentiment.label, topSentiment.score, text);
+        } else {
+          // Format: [{label: "joy", score: 0.8}, {label: "sadness", score: 0.2}]
+          const topEmotion = result[0];
+          return mapEmotionToMood(topEmotion.label, topEmotion.score, text);
+        }
+      }
+      
+      return analyzeTextMoodFallback(text);
     } catch (error) {
       console.error('Error analyzing mood:', error);
       toast({
-        title: "Analysis Error",
-        description: "AI analysis failed. Using fallback method. Please check your API key.",
+        title: "AI Analysis Failed",
+        description: "Using fallback analysis. Please check your API key or try again later.",
         variant: "destructive"
       });
-      // Fallback to simple keyword analysis
       return analyzeTextMoodFallback(text);
     } finally {
       setIsAnalyzing(false);
@@ -93,24 +119,39 @@ const Analyze = () => {
 
   const mapSentimentToMood = (label: string, score: number, text: string) => {
     const lowerText = text.toLowerCase();
+    const lowerLabel = label.toLowerCase();
     
-    // Map sentiment to mood with additional context from text
-    if (label === 'LABEL_2') { // Positive sentiment
+    if (lowerLabel.includes('positive') || lowerLabel.includes('label_2')) {
       if (lowerText.includes('excited') || lowerText.includes('thrilled') || lowerText.includes('amazing')) {
         return 'excited';
       }
       return 'happy';
-    } else if (label === 'LABEL_0') { // Negative sentiment
+    } else if (lowerLabel.includes('negative') || lowerLabel.includes('label_0')) {
       if (lowerText.includes('angry') || lowerText.includes('mad') || lowerText.includes('furious')) {
         return 'angry';
       } else if (lowerText.includes('anxious') || lowerText.includes('worried') || lowerText.includes('stressed')) {
         return 'anxious';
       }
       return 'sad';
-    } else { // Neutral sentiment
-      if (lowerText.includes('calm') || lowerText.includes('peaceful') || lowerText.includes('relaxed')) {
-        return 'calm';
-      }
+    } else {
+      return 'calm';
+    }
+  };
+
+  const mapEmotionToMood = (emotion: string, score: number, text: string) => {
+    const lowerEmotion = emotion.toLowerCase();
+    
+    if (lowerEmotion.includes('joy') || lowerEmotion.includes('happiness')) {
+      return 'happy';
+    } else if (lowerEmotion.includes('sadness') || lowerEmotion.includes('disappointment')) {
+      return 'sad';
+    } else if (lowerEmotion.includes('anger') || lowerEmotion.includes('annoyance')) {
+      return 'angry';
+    } else if (lowerEmotion.includes('fear') || lowerEmotion.includes('nervousness')) {
+      return 'anxious';
+    } else if (lowerEmotion.includes('surprise') || lowerEmotion.includes('excitement')) {
+      return 'excited';
+    } else {
       return 'calm';
     }
   };
