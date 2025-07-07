@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Brain, Heart, Smile, Frown, Angry, Zap, MessageSquare } from 'lucide-react';
+import { Brain, Heart, Smile, Frown, Angry, Zap, MessageSquare, Key } from 'lucide-react';
 import EmotionalChatbot from '@/components/EmotionalChatbot';
 import { toast } from '@/components/ui/use-toast';
 
@@ -10,6 +10,8 @@ const Analyze = () => {
   const [analysisMethod, setAnalysisMethod] = useState<'buttons' | 'text'>('buttons');
   const [showChatbot, setShowChatbot] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [huggingFaceKey, setHuggingFaceKey] = useState(localStorage.getItem('hf_api_key') || '');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   const moodOptions = [
     { value: 'happy', label: 'Happy', icon: Smile, color: 'bg-yellow-500', theme: 'yellow', emoji: '😊' },
@@ -20,15 +22,37 @@ const Analyze = () => {
     { value: 'anxious', label: 'Anxious', icon: Brain, color: 'bg-purple-500', theme: 'purple', emoji: '😰' }
   ];
 
+  const saveApiKey = () => {
+    if (huggingFaceKey.trim()) {
+      localStorage.setItem('hf_api_key', huggingFaceKey.trim());
+      setShowApiKeyInput(false);
+      toast({
+        title: "API Key Saved",
+        description: "Your Hugging Face API key has been saved locally.",
+      });
+    }
+  };
+
   const analyzeTextMoodWithAPI = async (text: string) => {
     try {
       setIsAnalyzing(true);
       
+      const apiKey = localStorage.getItem('hf_api_key');
+      if (!apiKey) {
+        toast({
+          title: "API Key Required",
+          description: "Please add your Hugging Face API key to use AI analysis.",
+          variant: "destructive"
+        });
+        return analyzeTextMoodFallback(text);
+      }
+
       // Using Hugging Face's free sentiment analysis API
       const response = await fetch(
         "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment-latest",
         {
           headers: {
+            "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },
           method: "POST",
@@ -37,6 +61,8 @@ const Analyze = () => {
       );
 
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
         throw new Error('Failed to analyze mood');
       }
 
@@ -55,7 +81,7 @@ const Analyze = () => {
       console.error('Error analyzing mood:', error);
       toast({
         title: "Analysis Error",
-        description: "Using fallback analysis method. Please try again.",
+        description: "AI analysis failed. Using fallback method. Please check your API key.",
         variant: "destructive"
       });
       // Fallback to simple keyword analysis
@@ -206,6 +232,69 @@ const Analyze = () => {
             <p className="text-gray-600 text-lg">Select your mood or describe how you're feeling to receive personalized insights</p>
           </div>
 
+          {/* API Key Section */}
+          {analysisMethod === 'text' && (
+            <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border-l-4 border-purple-500">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <Key className="h-5 w-5 text-purple-600" />
+                  <h3 className="text-lg font-semibold text-gray-800">AI Analysis Settings</h3>
+                </div>
+                <button
+                  onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                  className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
+                >
+                  {huggingFaceKey ? 'Update API Key' : 'Add API Key'}
+                </button>
+              </div>
+              
+              {showApiKeyInput && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Hugging Face API Key (for AI analysis)
+                    </label>
+                    <input
+                      type="password"
+                      value={huggingFaceKey}
+                      onChange={(e) => setHuggingFaceKey(e.target.value)}
+                      placeholder="Enter your Hugging Face API key..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={saveApiKey}
+                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      Save Key
+                    </button>
+                    <a
+                      href="https://huggingface.co/settings/tokens"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Get Free API Key
+                    </a>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Your API key is stored locally in your browser and never sent to our servers.
+                  </p>
+                </div>
+              )}
+              
+              {!showApiKeyInput && (
+                <p className="text-sm text-gray-600">
+                  {huggingFaceKey 
+                    ? "API key configured ✓ - AI analysis enabled" 
+                    : "Add your free Hugging Face API key to enable AI-powered mood analysis"
+                  }
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Analysis Method Selection and Form */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
             <div className="flex justify-center mb-6">
@@ -275,7 +364,12 @@ const Analyze = () => {
                       rows={4}
                     />
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">Our AI will analyze your text to understand your mood using advanced sentiment analysis</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {huggingFaceKey 
+                      ? "Our AI will analyze your text using advanced sentiment analysis"
+                      : "Add an API key above for AI analysis, or we'll use keyword matching"
+                    }
+                  </p>
                 </div>
               </>
             )}
