@@ -44,14 +44,14 @@ const Analyze = () => {
           description: "Please add your Hugging Face API key to use AI analysis.",
           variant: "destructive"
         });
-        return analyzeTextMoodFallback(text);
+        throw new Error('No API key provided');
       }
 
-      // Try a different model that's more accessible
+      // Use models that work reliably
       const models = [
-        "cardiffnlp/twitter-roberta-base-sentiment-latest",
+        "j-hartmann/emotion-english-distilroberta-base",
         "nlptown/bert-base-multilingual-uncased-sentiment", 
-        "j-hartmann/emotion-english-distilroberta-base"
+        "cardiffnlp/twitter-roberta-base-sentiment"
       ];
 
       let result = null;
@@ -76,8 +76,8 @@ const Analyze = () => {
             console.log(`Success with model ${model}:`, result);
             break;
           } else {
-            const errorData = await response.json();
-            console.log(`Model ${model} failed:`, errorData);
+            const errorText = await response.text();
+            console.log(`Model ${model} failed with status ${response.status}:`, errorText);
             continue;
           }
         } catch (modelError) {
@@ -93,85 +93,91 @@ const Analyze = () => {
       // Handle different response formats
       if (Array.isArray(result) && result.length > 0) {
         if (Array.isArray(result[0])) {
-          // Format: [[{label: "POSITIVE", score: 0.9}]]
-          const topSentiment = result[0][0];
-          return mapSentimentToMood(topSentiment.label, topSentiment.score, text);
+          // Format: [[{label: "joy", score: 0.8}]] or [[{label: "1 star", score: 0.9}]]
+          const topResult = result[0][0];
+          console.log('Processing result:', topResult);
+          
+          // Check if it's a star rating system
+          if (topResult.label.includes('star')) {
+            return mapStarRatingToMood(topResult.label, topResult.score, text);
+          } else {
+            // It's an emotion or sentiment
+            return mapEmotionToMood(topResult.label, topResult.score, text);
+          }
         } else {
-          // Format: [{label: "joy", score: 0.8}, {label: "sadness", score: 0.2}]
+          // Format: [{label: "joy", score: 0.8}]
           const topEmotion = result[0];
           return mapEmotionToMood(topEmotion.label, topEmotion.score, text);
         }
       }
       
-      return analyzeTextMoodFallback(text);
+      throw new Error('Unexpected API response format');
     } catch (error) {
       console.error('Error analyzing mood:', error);
       toast({
         title: "AI Analysis Failed",
-        description: "Using fallback analysis. Please check your API key or try again later.",
+        description: "Unable to analyze with API. Please check your API key.",
         variant: "destructive"
       });
-      return analyzeTextMoodFallback(text);
+      throw error;
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const mapSentimentToMood = (label: string, score: number, text: string) => {
+  const mapStarRatingToMood = (label: string, score: number, text: string) => {
     const lowerText = text.toLowerCase();
-    const lowerLabel = label.toLowerCase();
+    console.log('Mapping star rating:', label, 'for text:', text);
     
-    if (lowerLabel.includes('positive') || lowerLabel.includes('label_2')) {
-      if (lowerText.includes('excited') || lowerText.includes('thrilled') || lowerText.includes('amazing')) {
-        return 'excited';
-      }
-      return 'happy';
-    } else if (lowerLabel.includes('negative') || lowerLabel.includes('label_0')) {
-      if (lowerText.includes('angry') || lowerText.includes('mad') || lowerText.includes('furious')) {
+    // Extract star number
+    const starMatch = label.match(/(\d+)\s*star/);
+    const stars = starMatch ? parseInt(starMatch[1]) : 3;
+    
+    // For star ratings, 1-2 stars = negative, 3 stars = neutral, 4-5 stars = positive
+    if (stars <= 2) {
+      // Negative sentiment - determine specific negative emotion
+      if (lowerText.includes('angry') || lowerText.includes('mad') || lowerText.includes('furious') || lowerText.includes('hate')) {
         return 'angry';
-      } else if (lowerText.includes('anxious') || lowerText.includes('worried') || lowerText.includes('stressed')) {
+      } else if (lowerText.includes('tired') || lowerText.includes('exhausted') || lowerText.includes('drained') || lowerText.includes('weary')) {
+        return 'sad';  // Tired should map to sad, not calm
+      } else if (lowerText.includes('anxious') || lowerText.includes('worried') || lowerText.includes('stressed') || lowerText.includes('nervous')) {
         return 'anxious';
+      } else {
+        return 'sad';  // Default negative emotion
       }
-      return 'sad';
+    } else if (stars >= 4) {
+      // Positive sentiment
+      if (lowerText.includes('excited') || lowerText.includes('thrilled') || lowerText.includes('pumped') || lowerText.includes('energetic')) {
+        return 'excited';
+      } else {
+        return 'happy';
+      }
     } else {
-      return 'calm';
+      // Neutral (3 stars) - analyze text for specific emotions
+      if (lowerText.includes('calm') || lowerText.includes('peaceful') || lowerText.includes('relaxed')) {
+        return 'calm';
+      } else if (lowerText.includes('tired') || lowerText.includes('exhausted')) {
+        return 'sad';  // Tired should map to sad
+      } else {
+        return 'calm';  // Default neutral
+      }
     }
   };
 
   const mapEmotionToMood = (emotion: string, score: number, text: string) => {
     const lowerEmotion = emotion.toLowerCase();
+    console.log('Mapping emotion:', emotion, 'for text:', text);
     
-    if (lowerEmotion.includes('joy') || lowerEmotion.includes('happiness')) {
+    if (lowerEmotion.includes('joy') || lowerEmotion.includes('happiness') || lowerEmotion.includes('positive')) {
       return 'happy';
-    } else if (lowerEmotion.includes('sadness') || lowerEmotion.includes('disappointment')) {
+    } else if (lowerEmotion.includes('sadness') || lowerEmotion.includes('disappointment') || lowerEmotion.includes('negative')) {
       return 'sad';
     } else if (lowerEmotion.includes('anger') || lowerEmotion.includes('annoyance')) {
       return 'angry';
-    } else if (lowerEmotion.includes('fear') || lowerEmotion.includes('nervousness')) {
+    } else if (lowerEmotion.includes('fear') || lowerEmotion.includes('nervousness') || lowerEmotion.includes('anxiety')) {
       return 'anxious';
     } else if (lowerEmotion.includes('surprise') || lowerEmotion.includes('excitement')) {
       return 'excited';
-    } else {
-      return 'calm';
-    }
-  };
-
-  const analyzeTextMoodFallback = (text: string) => {
-    const lowerText = text.toLowerCase();
-    
-    // Simple keyword-based mood detection as fallback
-    if (lowerText.includes('happy') || lowerText.includes('joy') || lowerText.includes('great') || lowerText.includes('wonderful') || lowerText.includes('amazing') || lowerText.includes('good')) {
-      return 'happy';
-    } else if (lowerText.includes('sad') || lowerText.includes('cry') || lowerText.includes('down') || lowerText.includes('depressed') || lowerText.includes('blue')) {
-      return 'sad';
-    } else if (lowerText.includes('angry') || lowerText.includes('mad') || lowerText.includes('furious') || lowerText.includes('irritated') || lowerText.includes('annoyed')) {
-      return 'angry';
-    } else if (lowerText.includes('excited') || lowerText.includes('thrilled') || lowerText.includes('pumped') || lowerText.includes('energetic')) {
-      return 'excited';
-    } else if (lowerText.includes('calm') || lowerText.includes('peaceful') || lowerText.includes('relaxed') || lowerText.includes('serene')) {
-      return 'calm';
-    } else if (lowerText.includes('anxious') || lowerText.includes('worried') || lowerText.includes('nervous') || lowerText.includes('stressed') || lowerText.includes('overwhelmed')) {
-      return 'anxious';
     } else {
       return 'calm';
     }
@@ -243,7 +249,12 @@ const Analyze = () => {
     if (analysisMethod === 'buttons' && selectedMood) {
       detectedMood = selectedMood;
     } else if (analysisMethod === 'text' && textInput.trim()) {
-      detectedMood = await analyzeTextMoodWithAPI(textInput);
+      try {
+        detectedMood = await analyzeTextMoodWithAPI(textInput);
+      } catch (error) {
+        // If API fails, don't proceed with analysis
+        return;
+      }
     }
     
     if (detectedMood) {
@@ -400,7 +411,7 @@ const Analyze = () => {
                     <textarea
                       value={textInput}
                       onChange={(e) => setTextInput(e.target.value)}
-                      placeholder="Describe your current mood or feelings... (e.g., 'I feel really happy today because...' or 'I'm feeling anxious about...')"
+                      placeholder="Describe your current mood or feelings... (e.g., 'I feel really happy today because...' or 'I'm feeling tired and exhausted...')"
                       className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
                       rows={4}
                     />
@@ -408,7 +419,7 @@ const Analyze = () => {
                   <p className="text-sm text-gray-500 mt-2">
                     {huggingFaceKey 
                       ? "Our AI will analyze your text using advanced sentiment analysis"
-                      : "Add an API key above for AI analysis, or we'll use keyword matching"
+                      : "Add an API key above for AI analysis"
                     }
                   </p>
                 </div>
@@ -418,11 +429,14 @@ const Analyze = () => {
             <div className="text-center">
               <button
                 onClick={handleAnalyze}
-                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing}
+                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing || (analysisMethod === 'text' && !huggingFaceKey)}
                 className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
               >
                 {isAnalyzing ? 'Analyzing...' : 'Analyze My Mood'}
               </button>
+              {analysisMethod === 'text' && !huggingFaceKey && (
+                <p className="text-sm text-red-500 mt-2">Please add your Hugging Face API key to use AI analysis</p>
+              )}
             </div>
           </div>
 
