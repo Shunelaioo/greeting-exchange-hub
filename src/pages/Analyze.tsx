@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Brain, Heart, Smile, Frown, Angry, Zap, MessageSquare } from 'lucide-react';
 import EmotionalChatbot from '@/components/EmotionalChatbot';
+import { toast } from '@/components/ui/use-toast';
 
 const Analyze = () => {
   const [selectedMood, setSelectedMood] = useState('');
@@ -8,6 +9,7 @@ const Analyze = () => {
   const [moodResult, setMoodResult] = useState<any>(null);
   const [analysisMethod, setAnalysisMethod] = useState<'buttons' | 'text'>('buttons');
   const [showChatbot, setShowChatbot] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const moodOptions = [
     { value: 'happy', label: 'Happy', icon: Smile, color: 'bg-yellow-500', theme: 'yellow', emoji: '😊' },
@@ -18,10 +20,79 @@ const Analyze = () => {
     { value: 'anxious', label: 'Anxious', icon: Brain, color: 'bg-purple-500', theme: 'purple', emoji: '😰' }
   ];
 
-  const analyzeTextMood = (text: string) => {
+  const analyzeTextMoodWithAPI = async (text: string) => {
+    try {
+      setIsAnalyzing(true);
+      
+      // Using Hugging Face's free sentiment analysis API
+      const response = await fetch(
+        "https://api-inference.huggingface.co/models/cardiffnlp/twitter-roberta-base-sentiment-latest",
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify({ inputs: text }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to analyze mood');
+      }
+
+      const result = await response.json();
+      console.log('API Response:', result);
+      
+      // The API returns sentiment labels like LABEL_0 (negative), LABEL_1 (neutral), LABEL_2 (positive)
+      // We'll map these to our mood categories
+      if (result && result[0]) {
+        const topSentiment = result[0][0]; // Get the highest confidence result
+        return mapSentimentToMood(topSentiment.label, topSentiment.score, text);
+      }
+      
+      return 'calm'; // default fallback
+    } catch (error) {
+      console.error('Error analyzing mood:', error);
+      toast({
+        title: "Analysis Error",
+        description: "Using fallback analysis method. Please try again.",
+        variant: "destructive"
+      });
+      // Fallback to simple keyword analysis
+      return analyzeTextMoodFallback(text);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const mapSentimentToMood = (label: string, score: number, text: string) => {
     const lowerText = text.toLowerCase();
     
-    // Simple keyword-based mood detection
+    // Map sentiment to mood with additional context from text
+    if (label === 'LABEL_2') { // Positive sentiment
+      if (lowerText.includes('excited') || lowerText.includes('thrilled') || lowerText.includes('amazing')) {
+        return 'excited';
+      }
+      return 'happy';
+    } else if (label === 'LABEL_0') { // Negative sentiment
+      if (lowerText.includes('angry') || lowerText.includes('mad') || lowerText.includes('furious')) {
+        return 'angry';
+      } else if (lowerText.includes('anxious') || lowerText.includes('worried') || lowerText.includes('stressed')) {
+        return 'anxious';
+      }
+      return 'sad';
+    } else { // Neutral sentiment
+      if (lowerText.includes('calm') || lowerText.includes('peaceful') || lowerText.includes('relaxed')) {
+        return 'calm';
+      }
+      return 'calm';
+    }
+  };
+
+  const analyzeTextMoodFallback = (text: string) => {
+    const lowerText = text.toLowerCase();
+    
+    // Simple keyword-based mood detection as fallback
     if (lowerText.includes('happy') || lowerText.includes('joy') || lowerText.includes('great') || lowerText.includes('wonderful') || lowerText.includes('amazing') || lowerText.includes('good')) {
       return 'happy';
     } else if (lowerText.includes('sad') || lowerText.includes('cry') || lowerText.includes('down') || lowerText.includes('depressed') || lowerText.includes('blue')) {
@@ -35,7 +106,6 @@ const Analyze = () => {
     } else if (lowerText.includes('anxious') || lowerText.includes('worried') || lowerText.includes('nervous') || lowerText.includes('stressed') || lowerText.includes('overwhelmed')) {
       return 'anxious';
     } else {
-      // Default to calm if no specific mood detected
       return 'calm';
     }
   };
@@ -100,13 +170,13 @@ const Analyze = () => {
     };
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     let detectedMood = '';
     
     if (analysisMethod === 'buttons' && selectedMood) {
       detectedMood = selectedMood;
     } else if (analysisMethod === 'text' && textInput.trim()) {
-      detectedMood = analyzeTextMood(textInput);
+      detectedMood = await analyzeTextMoodWithAPI(textInput);
     }
     
     if (detectedMood) {
@@ -158,7 +228,7 @@ const Analyze = () => {
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  Describe Feelings
+                  AI Analysis
                 </button>
               </div>
             </div>
@@ -205,7 +275,7 @@ const Analyze = () => {
                       rows={4}
                     />
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">Our AI will analyze your text to understand your mood</p>
+                  <p className="text-sm text-gray-500 mt-2">Our AI will analyze your text to understand your mood using advanced sentiment analysis</p>
                 </div>
               </>
             )}
@@ -213,10 +283,10 @@ const Analyze = () => {
             <div className="text-center">
               <button
                 onClick={handleAnalyze}
-                disabled={!selectedMood && !textInput.trim()}
+                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing}
                 className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
               >
-                Analyze My Mood
+                {isAnalyzing ? 'Analyzing...' : 'Analyze My Mood'}
               </button>
             </div>
           </div>
