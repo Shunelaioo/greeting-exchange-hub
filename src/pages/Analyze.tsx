@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Brain, Heart, Smile, Frown, Angry, Zap, MessageSquare, Key } from 'lucide-react';
 import EmotionalChatbot from '@/components/EmotionalChatbot';
@@ -8,10 +7,10 @@ const Analyze = () => {
   const [selectedMood, setSelectedMood] = useState('');
   const [textInput, setTextInput] = useState('');
   const [moodResult, setMoodResult] = useState<any>(null);
-  const [analysisMethod, setAnalysisMethod] = useState<'buttons' | 'text'>('buttons');
   const [showChatbot, setShowChatbot] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [openaiKey, setOpenaiKey] = useState(localStorage.getItem('openai_api_key') || '');
+  const [watsonApiKey, setWatsonApiKey] = useState(localStorage.getItem('watson_api_key') || '');
+  const [watsonUrl, setWatsonUrl] = useState(localStorage.getItem('watson_url') || '');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   const moodOptions = [
@@ -23,102 +22,120 @@ const Analyze = () => {
     { value: 'anxious', label: 'Anxious', icon: Brain, color: 'bg-purple-500', theme: 'purple', emoji: '😰' }
   ];
 
-  const saveApiKey = () => {
-    if (openaiKey.trim()) {
-      localStorage.setItem('openai_api_key', openaiKey.trim());
+  const saveApiCredentials = () => {
+    if (watsonApiKey.trim() && watsonUrl.trim()) {
+      localStorage.setItem('watson_api_key', watsonApiKey.trim());
+      localStorage.setItem('watson_url', watsonUrl.trim());
       setShowApiKeyInput(false);
       toast({
-        title: "API Key Saved",
-        description: "Your OpenAI API key has been saved locally.",
+        title: "API Credentials Saved",
+        description: "Your IBM Watson credentials have been saved locally.",
+      });
+    } else {
+      toast({
+        title: "Missing Credentials",
+        description: "Please enter both API key and service URL.",
+        variant: "destructive"
       });
     }
   };
 
-  const analyzeTextMoodWithAPI = async (text: string) => {
+  const analyzeTextMoodWithWatson = async (text: string) => {
     try {
       setIsAnalyzing(true);
       
-      const apiKey = localStorage.getItem('openai_api_key');
-      if (!apiKey) {
+      const apiKey = localStorage.getItem('watson_api_key');
+      const serviceUrl = localStorage.getItem('watson_url');
+      
+      if (!apiKey || !serviceUrl) {
         toast({
-          title: "API Key Required",
-          description: "Please add your OpenAI API key to use AI analysis.",
+          title: "API Credentials Required",
+          description: "Please add your IBM Watson API credentials to use AI analysis.",
           variant: "destructive"
         });
-        throw new Error('No API key provided');
+        throw new Error('No API credentials provided');
       }
 
-      console.log('Starting OpenAI analysis for text:', text);
+      console.log('Starting IBM Watson analysis for text:', text);
       
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch(`${serviceUrl}/v1/analyze?version=2022-04-07`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Basic ${btoa(`apikey:${apiKey}`)}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'system',
-              content: `You are an emotion analysis expert. Analyze the given text and respond with ONLY ONE of these emotions: happy, sad, angry, excited, calm, anxious. 
-              
-              Guidelines:
-              - "tired", "exhausted", "drained" = sad
-              - "excited", "thrilled", "energetic" = excited
-              - "worried", "stressed", "nervous" = anxious
-              - "angry", "mad", "furious" = angry
-              - "happy", "joyful", "glad" = happy
-              - "peaceful", "relaxed", "serene" = calm
-              
-              Respond with just the emotion word, nothing else.`
+          text: text,
+          features: {
+            emotion: {
+              targets: [text]
             },
-            {
-              role: 'user',
-              content: text
-            }
-          ],
-          max_tokens: 10,
-          temperature: 0.1
+            sentiment: {}
+          }
         })
       });
 
-      console.log('OpenAI Response status:', response.status);
+      console.log('Watson Response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('OpenAI API Error:', errorData);
-        throw new Error(`OpenAI API request failed: ${errorData.error?.message || 'Unknown error'}`);
+        console.error('Watson API Error:', errorData);
+        throw new Error(`Watson API request failed: ${errorData.error || 'Unknown error'}`);
       }
 
       const data = await response.json();
-      console.log('OpenAI response data:', data);
+      console.log('Watson response data:', data);
       
-      const detectedEmotion = data.choices[0]?.message?.content?.trim().toLowerCase();
-      console.log('Detected emotion:', detectedEmotion);
+      // Extract emotions from Watson response
+      const emotions = data.emotion?.document?.emotion || {};
+      console.log('Detected emotions:', emotions);
       
-      // Validate the response is one of our expected emotions
-      const validEmotions = ['happy', 'sad', 'angry', 'excited', 'calm', 'anxious'];
-      if (validEmotions.includes(detectedEmotion)) {
-        return detectedEmotion;
-      } else {
-        // Fallback mapping if the response isn't exact
-        const lowerText = text.toLowerCase();
-        if (lowerText.includes('tired') || lowerText.includes('exhausted')) return 'sad';
-        if (lowerText.includes('excited') || lowerText.includes('thrilled')) return 'excited';
-        if (lowerText.includes('worried') || lowerText.includes('anxious')) return 'anxious';
-        if (lowerText.includes('angry') || lowerText.includes('mad')) return 'angry';
-        if (lowerText.includes('happy') || lowerText.includes('joyful')) return 'happy';
-        if (lowerText.includes('calm') || lowerText.includes('peaceful')) return 'calm';
-        
-        // Default fallback
-        return 'calm';
+      // Find the dominant emotion
+      let dominantEmotion = 'calm';
+      let maxScore = 0;
+      
+      const emotionMapping = {
+        'joy': 'happy',
+        'sadness': 'sad',
+        'anger': 'angry',
+        'fear': 'anxious',
+        'disgust': 'angry'
+      };
+      
+      for (const [watsonEmotion, score] of Object.entries(emotions)) {
+        if (score > maxScore) {
+          maxScore = score;
+          const mappedEmotion = emotionMapping[watsonEmotion as keyof typeof emotionMapping];
+          if (mappedEmotion) {
+            dominantEmotion = mappedEmotion;
+          }
+        }
       }
+      
+      // If joy score is high, might be excited instead of just happy
+      if (dominantEmotion === 'happy' && emotions.joy > 0.7) {
+        dominantEmotion = 'excited';
+      }
+      
+      // Fallback based on text content if no strong emotion detected
+      if (maxScore < 0.3) {
+        const lowerText = text.toLowerCase();
+        if (lowerText.includes('tired') || lowerText.includes('exhausted')) dominantEmotion = 'sad';
+        else if (lowerText.includes('excited') || lowerText.includes('thrilled')) dominantEmotion = 'excited';
+        else if (lowerText.includes('worried') || lowerText.includes('anxious')) dominantEmotion = 'anxious';
+        else if (lowerText.includes('angry') || lowerText.includes('mad')) dominantEmotion = 'angry';
+        else if (lowerText.includes('happy') || lowerText.includes('joyful')) dominantEmotion = 'happy';
+        else if (lowerText.includes('calm') || lowerText.includes('peaceful')) dominantEmotion = 'calm';
+      }
+      
+      console.log('Final detected emotion:', dominantEmotion);
+      return dominantEmotion;
+      
     } catch (error) {
       console.error('Error analyzing mood:', error);
       toast({
         title: "AI Analysis Failed",
-        description: `Unable to analyze with OpenAI API: ${error.message}`,
+        description: `Unable to analyze with IBM Watson: ${error.message}`,
         variant: "destructive"
       });
       throw error;
@@ -387,18 +404,18 @@ const Analyze = () => {
   const handleAnalyze = async () => {
     let detectedMood = '';
     
-    if (analysisMethod === 'buttons' && selectedMood) {
+    if (selectedMood) {
       detectedMood = selectedMood;
-    } else if (analysisMethod === 'text' && textInput.trim()) {
+    } else if (textInput.trim()) {
       try {
-        detectedMood = await analyzeTextMoodWithAPI(textInput);
+        detectedMood = await analyzeTextMoodWithWatson(textInput);
       } catch (error) {
         return;
       }
     }
     
     if (detectedMood) {
-      const analysis = getMoodAnalysis(detectedMood, analysisMethod === 'text' ? textInput : undefined);
+      const analysis = getMoodAnalysis(detectedMood, textInput || undefined);
       setMoodResult({ ...analysis, detectedMood });
     }
   };
@@ -425,157 +442,156 @@ const Analyze = () => {
           </div>
 
           {/* API Key Section */}
-          {analysisMethod === 'text' && (
-            <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border-l-4 border-purple-500">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <Key className="h-5 w-5 text-purple-600" />
-                  <h3 className="text-lg font-semibold text-gray-800">AI Analysis Settings</h3>
-                </div>
-                <button
-                  onClick={() => setShowApiKeyInput(!showApiKeyInput)}
-                  className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
-                >
-                  {openaiKey ? 'Update API Key' : 'Add API Key'}
-                </button>
+          <div className="bg-white rounded-2xl shadow-xl p-6 mb-8 border-l-4 border-purple-500">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Key className="h-5 w-5 text-purple-600" />
+                <h3 className="text-lg font-semibold text-gray-800">AI Analysis Settings</h3>
               </div>
-              
-              {showApiKeyInput && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      OpenAI API Key (for AI analysis)
-                    </label>
-                    <input
-                      type="password"
-                      value={openaiKey}
-                      onChange={(e) => setOpenaiKey(e.target.value)}
-                      placeholder="Enter your OpenAI API key..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
-                  </div>
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={saveApiKey}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                      Save Key
-                    </button>
-                    <a
-                      href="https://platform.openai.com/api-keys"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      Get OpenAI API Key
-                    </a>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    Your API key is stored locally in your browser and never sent to our servers.
-                  </p>
-                </div>
-              )}
-              
-              {!showApiKeyInput && (
-                <p className="text-sm text-gray-600">
-                  {openaiKey 
-                    ? "OpenAI API key configured ✓ - AI analysis enabled" 
-                    : "Add your OpenAI API key to enable AI-powered mood analysis"
-                  }
-                </p>
-              )}
+              <button
+                onClick={() => setShowApiKeyInput(!showApiKeyInput)}
+                className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
+              >
+                {watsonApiKey && watsonUrl ? 'Update Credentials' : 'Add Credentials'}
+              </button>
             </div>
-          )}
+            
+            {showApiKeyInput && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    IBM Watson API Key
+                  </label>
+                  <input
+                    type="password"
+                    value={watsonApiKey}
+                    onChange={(e) => setWatsonApiKey(e.target.value)}
+                    placeholder="Enter your IBM Watson API key..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    IBM Watson Service URL
+                  </label>
+                  <input
+                    type="text"
+                    value={watsonUrl}
+                    onChange={(e) => setWatsonUrl(e.target.value)}
+                    placeholder="https://api.us-south.natural-language-understanding.watson.cloud.ibm.com"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="flex space-x-3">
+                  <button
+                    onClick={saveApiCredentials}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Save Credentials
+                  </button>
+                  <a
+                    href="https://cloud.ibm.com/catalog/services/natural-language-understanding"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Get IBM Watson Access
+                  </a>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Your credentials are stored locally in your browser. Free tier: 30,000 NLU items per month.
+                </p>
+              </div>
+            )}
+            
+            {!showApiKeyInput && (
+              <p className="text-sm text-gray-600">
+                {watsonApiKey && watsonUrl
+                  ? "IBM Watson credentials configured ✓ - AI analysis enabled" 
+                  : "Add your IBM Watson credentials to enable AI-powered mood analysis"
+                }
+              </p>
+            )}
+          </div>
 
           {/* Analysis Method Selection and Form */}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
             <div className="flex justify-center mb-6">
               <div className="bg-gray-100 rounded-lg p-1 flex">
                 <button
-                  onClick={() => setAnalysisMethod('buttons')}
-                  className={`px-4 py-2 rounded-md transition-colors ${
-                    analysisMethod === 'buttons' 
-                      ? 'bg-purple-600 text-white' 
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
+                  onClick={() => {setSelectedMood(''); setTextInput('');}}
+                  className="px-4 py-2 rounded-md transition-colors text-gray-600 hover:text-gray-800"
                 >
                   Quick Select
                 </button>
                 <button
-                  onClick={() => setAnalysisMethod('text')}
-                  className={`px-4 py-2 rounded-md transition-colors ${
-                    analysisMethod === 'text' 
-                      ? 'bg-purple-600 text-white' 
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
+                  onClick={() => {setSelectedMood(''); setTextInput('');}}
+                  className="px-4 py-2 rounded-md transition-colors bg-purple-600 text-white"
                 >
                   AI Analysis
                 </button>
               </div>
             </div>
 
-            {analysisMethod === 'buttons' ? (
-              <>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">How are you feeling right now?</h2>
-                
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-                  {moodOptions.map((mood) => {
-                    const IconComponent = mood.icon;
-                    return (
-                      <button
-                        key={mood.value}
-                        onClick={() => setSelectedMood(mood.value)}
-                        className={`p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
-                          selectedMood === mood.value 
-                            ? `${mood.color} text-white border-transparent shadow-lg` 
-                            : 'bg-gray-50 border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="text-2xl mb-2">{mood.emoji}</div>
-                        <IconComponent className={`h-6 w-6 mx-auto mb-2 ${selectedMood === mood.value ? 'text-white' : 'text-gray-600'}`} />
-                        <span className={`font-medium ${selectedMood === mood.value ? 'text-white' : 'text-gray-700'}`}>
-                          {mood.label}
-                        </span>
-                      </button>
-                    );
-                  })}
+            {/* Quick Select Moods */}
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">How are you feeling right now?</h2>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+              {moodOptions.map((mood) => {
+                const IconComponent = mood.icon;
+                return (
+                  <button
+                    key={mood.value}
+                    onClick={() => {setSelectedMood(mood.value); setTextInput('');}}
+                    className={`p-6 rounded-xl border-2 transition-all duration-300 hover:scale-105 ${
+                      selectedMood === mood.value 
+                        ? `${mood.color} text-white border-transparent shadow-lg` 
+                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="text-2xl mb-2">{mood.emoji}</div>
+                    <IconComponent className={`h-6 w-6 mx-auto mb-2 ${selectedMood === mood.value ? 'text-white' : 'text-gray-600'}`} />
+                    <span className={`font-medium ${selectedMood === mood.value ? 'text-white' : 'text-gray-700'}`}>
+                      {mood.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Text Analysis */}
+            <div className="border-t pt-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Or describe your feelings</h3>
+              <div className="mb-8">
+                <div className="relative">
+                  <MessageSquare className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <textarea
+                    value={textInput}
+                    onChange={(e) => {setTextInput(e.target.value); setSelectedMood('');}}
+                    placeholder="Describe your current mood or feelings... (e.g., 'I feel really tired today' or 'I'm feeling excited about my new project')"
+                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
+                    rows={4}
+                  />
                 </div>
-              </>
-            ) : (
-              <>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Tell us how you're feeling</h2>
-                
-                <div className="mb-8">
-                  <div className="relative">
-                    <MessageSquare className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                    <textarea
-                      value={textInput}
-                      onChange={(e) => setTextInput(e.target.value)}
-                      placeholder="Describe your current mood or feelings... (e.g., 'I feel really tired today' or 'I'm feeling excited about my new project')"
-                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
-                      rows={4}
-                    />
-                  </div>
-                  <p className="text-sm text-gray-500 mt-2">
-                    {openaiKey 
-                      ? "Our AI will analyze your text using OpenAI's advanced language model"
-                      : "Add an OpenAI API key above for AI analysis"
-                    }
-                  </p>
-                </div>
-              </>
-            )}
+                <p className="text-sm text-gray-500 mt-2">
+                  {watsonApiKey && watsonUrl
+                    ? "Our AI will analyze your text using IBM Watson's Natural Language Understanding"
+                    : "Add IBM Watson credentials above for AI analysis"
+                  }
+                </p>
+              </div>
+            </div>
 
             <div className="text-center">
               <button
                 onClick={handleAnalyze}
-                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing || (analysisMethod === 'text' && !openaiKey)}
+                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing || (textInput.trim() && (!watsonApiKey || !watsonUrl))}
                 className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
               >
                 {isAnalyzing ? 'Analyzing...' : 'Analyze My Mood'}
               </button>
-              {analysisMethod === 'text' && !openaiKey && (
-                <p className="text-sm text-red-500 mt-2">Please add your OpenAI API key to use AI analysis</p>
+              {textInput.trim() && (!watsonApiKey || !watsonUrl) && (
+                <p className="text-sm text-red-500 mt-2">Please add your IBM Watson credentials to use AI analysis</p>
               )}
             </div>
           </div>
@@ -643,7 +659,7 @@ const Analyze = () => {
       {showChatbot && (
         <EmotionalChatbot
           mood={moodResult?.detectedMood}
-          context={analysisMethod === 'text' ? textInput : undefined}
+          context={textInput || undefined}
           onClose={() => setShowChatbot(false)}
         />
       )}
