@@ -9,8 +9,7 @@ const Analyze = () => {
   const [moodResult, setMoodResult] = useState<any>(null);
   const [showChatbot, setShowChatbot] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [watsonApiKey, setWatsonApiKey] = useState(localStorage.getItem('watson_api_key') || '');
-  const [watsonUrl, setWatsonUrl] = useState(localStorage.getItem('watson_url') || '');
+  const [huggingFaceApiKey, setHuggingFaceApiKey] = useState(localStorage.getItem('huggingface_api_key') || '');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   const moodOptions = [
@@ -23,121 +22,119 @@ const Analyze = () => {
   ];
 
   const saveApiCredentials = () => {
-    if (watsonApiKey.trim() && watsonUrl.trim()) {
-      localStorage.setItem('watson_api_key', watsonApiKey.trim());
-      localStorage.setItem('watson_url', watsonUrl.trim());
+    if (huggingFaceApiKey.trim()) {
+      localStorage.setItem('huggingface_api_key', huggingFaceApiKey.trim());
       setShowApiKeyInput(false);
       toast({
-        title: "API Credentials Saved",
-        description: "Your IBM Watson credentials have been saved locally.",
+        title: "API Key Saved",
+        description: "Your Hugging Face API key has been saved locally.",
       });
     } else {
       toast({
-        title: "Missing Credentials",
-        description: "Please enter both API key and service URL.",
+        title: "Missing API Key",
+        description: "Please enter your Hugging Face API key.",
         variant: "destructive"
       });
     }
   };
 
-  const analyzeTextMoodWithWatson = async (text: string) => {
+  const analyzeTextMoodWithHuggingFace = async (text: string) => {
     try {
       setIsAnalyzing(true);
       
-      const apiKey = localStorage.getItem('watson_api_key');
-      const serviceUrl = localStorage.getItem('watson_url');
+      const apiKey = localStorage.getItem('huggingface_api_key');
       
-      if (!apiKey || !serviceUrl) {
+      if (!apiKey) {
         toast({
-          title: "API Credentials Required",
-          description: "Please add your IBM Watson API credentials to use AI analysis.",
+          title: "API Key Required",
+          description: "Please add your Hugging Face API key to use AI analysis.",
           variant: "destructive"
         });
-        throw new Error('No API credentials provided');
+        throw new Error('No API key provided');
       }
 
-      console.log('Starting IBM Watson analysis for text:', text);
+      console.log('Starting Hugging Face analysis for text:', text);
       
-      const response = await fetch(`${serviceUrl}/v1/analyze?version=2022-04-07`, {
+      // Using a pre-trained emotion classification model
+      const response = await fetch('https://api-inference.huggingface.co/models/j-hartmann/emotion-english-distilroberta-base', {
         method: 'POST',
         headers: {
-          'Authorization': `Basic ${btoa(`apikey:${apiKey}`)}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          text: text,
-          features: {
-            emotion: {
-              targets: [text]
-            },
-            sentiment: {}
+          inputs: text,
+          options: {
+            wait_for_model: true
           }
         })
       });
 
-      console.log('Watson Response status:', response.status);
+      console.log('Hugging Face Response status:', response.status);
       
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Watson API Error:', errorData);
-        throw new Error(`Watson API request failed: ${errorData.error || 'Unknown error'}`);
+        const errorData = await response.text();
+        console.error('Hugging Face API Error:', errorData);
+        throw new Error(`Hugging Face API request failed: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('Watson response data:', data);
+      console.log('Hugging Face response data:', data);
       
-      // Extract emotions from Watson response with proper typing
-      const emotions = data.emotion?.document?.emotion || {};
-      console.log('Detected emotions:', emotions);
-      
-      // Find the dominant emotion with proper type checking
-      let dominantEmotion = 'calm';
-      let maxScore = 0;
-      
-      const emotionMapping = {
-        'joy': 'happy',
-        'sadness': 'sad',
-        'anger': 'angry',
-        'fear': 'anxious',
-        'disgust': 'angry'
-      };
-      
-      for (const [watsonEmotion, score] of Object.entries(emotions)) {
-        const numericScore = typeof score === 'number' ? score : 0;
-        if (numericScore > maxScore) {
-          maxScore = numericScore;
-          const mappedEmotion = emotionMapping[watsonEmotion as keyof typeof emotionMapping];
-          if (mappedEmotion) {
-            dominantEmotion = mappedEmotion;
+      // Find the emotion with highest confidence
+      if (data && data.length > 0) {
+        const emotions = data[0];
+        let dominantEmotion = 'calm';
+        let maxScore = 0;
+        
+        // Map Hugging Face emotions to our app emotions
+        const emotionMapping = {
+          'joy': 'happy',
+          'sadness': 'sad',
+          'anger': 'angry',
+          'fear': 'anxious',
+          'surprise': 'excited',
+          'disgust': 'angry'
+        };
+        
+        for (const emotion of emotions) {
+          if (emotion.score > maxScore) {
+            maxScore = emotion.score;
+            const mappedEmotion = emotionMapping[emotion.label as keyof typeof emotionMapping];
+            if (mappedEmotion) {
+              dominantEmotion = mappedEmotion;
+            }
           }
         }
+        
+        // If joy score is high, might be excited instead of just happy
+        const joyEmotion = emotions.find((e: any) => e.label === 'joy');
+        if (dominantEmotion === 'happy' && joyEmotion && joyEmotion.score > 0.7) {
+          dominantEmotion = 'excited';
+        }
+        
+        // Fallback based on text content if no strong emotion detected
+        if (maxScore < 0.4) {
+          const lowerText = text.toLowerCase();
+          if (lowerText.includes('tired') || lowerText.includes('exhausted')) dominantEmotion = 'sad';
+          else if (lowerText.includes('excited') || lowerText.includes('thrilled')) dominantEmotion = 'excited';
+          else if (lowerText.includes('worried') || lowerText.includes('anxious')) dominantEmotion = 'anxious';
+          else if (lowerText.includes('angry') || lowerText.includes('mad')) dominantEmotion = 'angry';
+          else if (lowerText.includes('happy') || lowerText.includes('joyful')) dominantEmotion = 'happy';
+          else if (lowerText.includes('calm') || lowerText.includes('peaceful')) dominantEmotion = 'calm';
+        }
+        
+        console.log('Final detected emotion:', dominantEmotion);
+        return dominantEmotion;
       }
       
-      // If joy score is high, might be excited instead of just happy
-      const joyScore = typeof emotions.joy === 'number' ? emotions.joy : 0;
-      if (dominantEmotion === 'happy' && joyScore > 0.7) {
-        dominantEmotion = 'excited';
-      }
-      
-      // Fallback based on text content if no strong emotion detected
-      if (maxScore < 0.3) {
-        const lowerText = text.toLowerCase();
-        if (lowerText.includes('tired') || lowerText.includes('exhausted')) dominantEmotion = 'sad';
-        else if (lowerText.includes('excited') || lowerText.includes('thrilled')) dominantEmotion = 'excited';
-        else if (lowerText.includes('worried') || lowerText.includes('anxious')) dominantEmotion = 'anxious';
-        else if (lowerText.includes('angry') || lowerText.includes('mad')) dominantEmotion = 'angry';
-        else if (lowerText.includes('happy') || lowerText.includes('joyful')) dominantEmotion = 'happy';
-        else if (lowerText.includes('calm') || lowerText.includes('peaceful')) dominantEmotion = 'calm';
-      }
-      
-      console.log('Final detected emotion:', dominantEmotion);
-      return dominantEmotion;
+      return 'calm'; // Default fallback
       
     } catch (error) {
       console.error('Error analyzing mood:', error);
       toast({
         title: "AI Analysis Failed",
-        description: `Unable to analyze with IBM Watson: ${error.message}`,
+        description: `Unable to analyze with Hugging Face: ${error.message}`,
         variant: "destructive"
       });
       throw error;
@@ -410,7 +407,7 @@ const Analyze = () => {
       detectedMood = selectedMood;
     } else if (textInput.trim()) {
       try {
-        detectedMood = await analyzeTextMoodWithWatson(textInput);
+        detectedMood = await analyzeTextMoodWithHuggingFace(textInput);
       } catch (error) {
         return;
       }
@@ -454,7 +451,7 @@ const Analyze = () => {
                 onClick={() => setShowApiKeyInput(!showApiKeyInput)}
                 className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
               >
-                {watsonApiKey && watsonUrl ? 'Update Credentials' : 'Add Credentials'}
+                {huggingFaceApiKey ? 'Update API Key' : 'Add API Key'}
               </button>
             </div>
             
@@ -462,25 +459,13 @@ const Analyze = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    IBM Watson API Key
+                    Hugging Face API Key
                   </label>
                   <input
                     type="password"
-                    value={watsonApiKey}
-                    onChange={(e) => setWatsonApiKey(e.target.value)}
-                    placeholder="Enter your IBM Watson API key..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    IBM Watson Service URL
-                  </label>
-                  <input
-                    type="text"
-                    value={watsonUrl}
-                    onChange={(e) => setWatsonUrl(e.target.value)}
-                    placeholder="https://api.us-south.natural-language-understanding.watson.cloud.ibm.com"
+                    value={huggingFaceApiKey}
+                    onChange={(e) => setHuggingFaceApiKey(e.target.value)}
+                    placeholder="Enter your Hugging Face API key..."
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
@@ -489,28 +474,28 @@ const Analyze = () => {
                     onClick={saveApiCredentials}
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
                   >
-                    Save Credentials
+                    Save API Key
                   </button>
                   <a
-                    href="https://cloud.ibm.com/catalog/services/natural-language-understanding"
+                    href="https://huggingface.co/settings/tokens"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                   >
-                    Get IBM Watson Access
+                    Get Hugging Face API Key
                   </a>
                 </div>
                 <p className="text-xs text-gray-500">
-                  Your credentials are stored locally in your browser. Free tier: 30,000 NLU items per month.
+                  Your API key is stored locally in your browser. Free tier: 1,000 requests per month.
                 </p>
               </div>
             )}
             
             {!showApiKeyInput && (
               <p className="text-sm text-gray-600">
-                {watsonApiKey && watsonUrl
-                  ? "IBM Watson credentials configured ✓ - AI analysis enabled" 
-                  : "Add your IBM Watson credentials to enable AI-powered mood analysis"
+                {huggingFaceApiKey
+                  ? "Hugging Face API key configured ✓ - AI analysis enabled" 
+                  : "Add your Hugging Face API key to enable AI-powered mood analysis"
                 }
               </p>
             )}
@@ -576,9 +561,9 @@ const Analyze = () => {
                   />
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
-                  {watsonApiKey && watsonUrl
-                    ? "Our AI will analyze your text using IBM Watson's Natural Language Understanding"
-                    : "Add IBM Watson credentials above for AI analysis"
+                  {huggingFaceApiKey
+                    ? "Our AI will analyze your text using Hugging Face's emotion detection model"
+                    : "Add Hugging Face API key above for AI analysis"
                   }
                 </p>
               </div>
@@ -587,13 +572,13 @@ const Analyze = () => {
             <div className="text-center">
               <button
                 onClick={handleAnalyze}
-                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing || (textInput.trim() && (!watsonApiKey || !watsonUrl))}
+                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing || (textInput.trim() && !huggingFaceApiKey)}
                 className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
               >
                 {isAnalyzing ? 'Analyzing...' : 'Analyze My Mood'}
               </button>
-              {textInput.trim() && (!watsonApiKey || !watsonUrl) && (
-                <p className="text-sm text-red-500 mt-2">Please add your IBM Watson credentials to use AI analysis</p>
+              {textInput.trim() && !huggingFaceApiKey && (
+                <p className="text-sm text-red-500 mt-2">Please add your Hugging Face API key to use AI analysis</p>
               )}
             </div>
           </div>
