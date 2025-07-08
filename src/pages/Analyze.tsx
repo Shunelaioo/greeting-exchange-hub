@@ -11,7 +11,7 @@ const Analyze = () => {
   const [analysisMethod, setAnalysisMethod] = useState<'buttons' | 'text'>('buttons');
   const [showChatbot, setShowChatbot] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [huggingFaceKey, setHuggingFaceKey] = useState(localStorage.getItem('hf_api_key') || '');
+  const [openaiKey, setOpenaiKey] = useState(localStorage.getItem('openai_api_key') || '');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   const moodOptions = [
@@ -24,12 +24,12 @@ const Analyze = () => {
   ];
 
   const saveApiKey = () => {
-    if (huggingFaceKey.trim()) {
-      localStorage.setItem('hf_api_key', huggingFaceKey.trim());
+    if (openaiKey.trim()) {
+      localStorage.setItem('openai_api_key', openaiKey.trim());
       setShowApiKeyInput(false);
       toast({
         title: "API Key Saved",
-        description: "Your Hugging Face API key has been saved locally.",
+        description: "Your OpenAI API key has been saved locally.",
       });
     }
   };
@@ -38,119 +38,93 @@ const Analyze = () => {
     try {
       setIsAnalyzing(true);
       
-      const apiKey = localStorage.getItem('hf_api_key');
+      const apiKey = localStorage.getItem('openai_api_key');
       if (!apiKey) {
         toast({
           title: "API Key Required",
-          description: "Please add your Hugging Face API key to use AI analysis.",
+          description: "Please add your OpenAI API key to use AI analysis.",
           variant: "destructive"
         });
         throw new Error('No API key provided');
       }
 
-      console.log('Starting API analysis for text:', text);
+      console.log('Starting OpenAI analysis for text:', text);
       
-      // Try emotion detection model first
-      const emotionModel = "j-hartmann/emotion-english-distilroberta-base";
-      console.log(`Trying emotion model: ${emotionModel}`);
-      
-      const emotionResponse = await fetch(
-        `https://api-inference.huggingface.co/models/${emotionModel}`,
-        {
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          method: "POST",
-          body: JSON.stringify({ 
-            inputs: text,
-            options: {
-              wait_for_model: true,
-              use_cache: false
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'system',
+              content: `You are an emotion analysis expert. Analyze the given text and respond with ONLY ONE of these emotions: happy, sad, angry, excited, calm, anxious. 
+              
+              Guidelines:
+              - "tired", "exhausted", "drained" = sad
+              - "excited", "thrilled", "energetic" = excited
+              - "worried", "stressed", "nervous" = anxious
+              - "angry", "mad", "furious" = angry
+              - "happy", "joyful", "glad" = happy
+              - "peaceful", "relaxed", "serene" = calm
+              
+              Respond with just the emotion word, nothing else.`
+            },
+            {
+              role: 'user',
+              content: text
             }
-          }),
-        }
-      );
+          ],
+          max_tokens: 10,
+          temperature: 0.1
+        })
+      });
 
-      console.log('API Response status:', emotionResponse.status);
-      const responseText = await emotionResponse.text();
-      console.log('API Response text:', responseText);
-
-      if (!emotionResponse.ok) {
-        throw new Error(`API request failed with status ${emotionResponse.status}: ${responseText}`);
-      }
-
-      let result;
-      try {
-        result = JSON.parse(responseText);
-        console.log('Parsed API result:', result);
-      } catch (parseError) {
-        console.error('Failed to parse API response:', parseError);
-        throw new Error('Invalid API response format');
-      }
-
-      if (Array.isArray(result) && result.length > 0) {
-        // Sort by score to get the highest confidence emotion
-        const sortedResults = result.sort((a, b) => b.score - a.score);
-        const topEmotion = sortedResults[0];
-        console.log('Top emotion detected:', topEmotion);
-        
-        return mapEmotionToMood(topEmotion.label, topEmotion.score, text);
-      }
+      console.log('OpenAI Response status:', response.status);
       
-      throw new Error('No emotions detected in API response');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('OpenAI API Error:', errorData);
+        throw new Error(`OpenAI API request failed: ${errorData.error?.message || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+      console.log('OpenAI response data:', data);
+      
+      const detectedEmotion = data.choices[0]?.message?.content?.trim().toLowerCase();
+      console.log('Detected emotion:', detectedEmotion);
+      
+      // Validate the response is one of our expected emotions
+      const validEmotions = ['happy', 'sad', 'angry', 'excited', 'calm', 'anxious'];
+      if (validEmotions.includes(detectedEmotion)) {
+        return detectedEmotion;
+      } else {
+        // Fallback mapping if the response isn't exact
+        const lowerText = text.toLowerCase();
+        if (lowerText.includes('tired') || lowerText.includes('exhausted')) return 'sad';
+        if (lowerText.includes('excited') || lowerText.includes('thrilled')) return 'excited';
+        if (lowerText.includes('worried') || lowerText.includes('anxious')) return 'anxious';
+        if (lowerText.includes('angry') || lowerText.includes('mad')) return 'angry';
+        if (lowerText.includes('happy') || lowerText.includes('joyful')) return 'happy';
+        if (lowerText.includes('calm') || lowerText.includes('peaceful')) return 'calm';
+        
+        // Default fallback
+        return 'calm';
+      }
     } catch (error) {
       console.error('Error analyzing mood:', error);
       toast({
         title: "AI Analysis Failed",
-        description: `Unable to analyze with API: ${error.message}`,
+        description: `Unable to analyze with OpenAI API: ${error.message}`,
         variant: "destructive"
       });
       throw error;
     } finally {
       setIsAnalyzing(false);
     }
-  };
-
-  const mapEmotionToMood = (emotion: string, score: number, text: string) => {
-    const lowerEmotion = emotion.toLowerCase();
-    const lowerText = text.toLowerCase();
-    console.log('Mapping emotion:', emotion, 'with score:', score, 'for text:', text);
-    
-    // Map Hugging Face emotions to our mood system
-    if (lowerEmotion.includes('joy') || lowerEmotion.includes('happiness')) {
-      return 'happy';
-    } else if (lowerEmotion.includes('sadness') || lowerEmotion.includes('disappointment')) {
-      return 'sad';
-    } else if (lowerEmotion.includes('anger') || lowerEmotion.includes('annoyance')) {
-      return 'angry';
-    } else if (lowerEmotion.includes('fear') || lowerEmotion.includes('nervousness')) {
-      return 'anxious';
-    } else if (lowerEmotion.includes('surprise') || lowerEmotion.includes('excitement')) {
-      return 'excited';
-    } else if (lowerEmotion.includes('disgust') || lowerEmotion.includes('contempt')) {
-      return 'angry';
-    } else if (lowerEmotion.includes('trust') || lowerEmotion.includes('anticipation')) {
-      return 'calm';
-    }
-    
-    // Additional text-based context mapping for better accuracy
-    if (lowerText.includes('tired') || lowerText.includes('exhausted') || lowerText.includes('drained')) {
-      return 'sad';
-    } else if (lowerText.includes('excited') || lowerText.includes('thrilled') || lowerText.includes('energetic')) {
-      return 'excited';
-    } else if (lowerText.includes('worried') || lowerText.includes('anxious') || lowerText.includes('stressed')) {
-      return 'anxious';
-    } else if (lowerText.includes('angry') || lowerText.includes('mad') || lowerText.includes('furious')) {
-      return 'angry';
-    } else if (lowerText.includes('happy') || lowerText.includes('joyful') || lowerText.includes('glad')) {
-      return 'happy';
-    } else if (lowerText.includes('peaceful') || lowerText.includes('relaxed') || lowerText.includes('serene')) {
-      return 'calm';
-    }
-    
-    // Default fallback based on emotion
-    return 'calm';
   };
 
   const getMoodAnalysis = (mood: string, userText?: string) => {
@@ -462,7 +436,7 @@ const Analyze = () => {
                   onClick={() => setShowApiKeyInput(!showApiKeyInput)}
                   className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
                 >
-                  {huggingFaceKey ? 'Update API Key' : 'Add API Key'}
+                  {openaiKey ? 'Update API Key' : 'Add API Key'}
                 </button>
               </div>
               
@@ -470,13 +444,13 @@ const Analyze = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Hugging Face API Key (for AI analysis)
+                      OpenAI API Key (for AI analysis)
                     </label>
                     <input
                       type="password"
-                      value={huggingFaceKey}
-                      onChange={(e) => setHuggingFaceKey(e.target.value)}
-                      placeholder="Enter your Hugging Face API key..."
+                      value={openaiKey}
+                      onChange={(e) => setOpenaiKey(e.target.value)}
+                      placeholder="Enter your OpenAI API key..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
@@ -488,12 +462,12 @@ const Analyze = () => {
                       Save Key
                     </button>
                     <a
-                      href="https://huggingface.co/settings/tokens"
+                      href="https://platform.openai.com/api-keys"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                      Get Free API Key
+                      Get OpenAI API Key
                     </a>
                   </div>
                   <p className="text-xs text-gray-500">
@@ -504,9 +478,9 @@ const Analyze = () => {
               
               {!showApiKeyInput && (
                 <p className="text-sm text-gray-600">
-                  {huggingFaceKey 
-                    ? "API key configured ✓ - AI analysis enabled" 
-                    : "Add your free Hugging Face API key to enable AI-powered mood analysis"
+                  {openaiKey 
+                    ? "OpenAI API key configured ✓ - AI analysis enabled" 
+                    : "Add your OpenAI API key to enable AI-powered mood analysis"
                   }
                 </p>
               )}
@@ -577,15 +551,15 @@ const Analyze = () => {
                     <textarea
                       value={textInput}
                       onChange={(e) => setTextInput(e.target.value)}
-                      placeholder="Describe your current mood or feelings... (e.g., 'I feel really happy today because...' or 'I'm feeling tired and exhausted...')"
+                      placeholder="Describe your current mood or feelings... (e.g., 'I feel really tired today' or 'I'm feeling excited about my new project')"
                       className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-lg focus:border-purple-500 focus:outline-none resize-none"
                       rows={4}
                     />
                   </div>
                   <p className="text-sm text-gray-500 mt-2">
-                    {huggingFaceKey 
-                      ? "Our AI will analyze your text using advanced sentiment analysis"
-                      : "Add an API key above for AI analysis"
+                    {openaiKey 
+                      ? "Our AI will analyze your text using OpenAI's advanced language model"
+                      : "Add an OpenAI API key above for AI analysis"
                     }
                   </p>
                 </div>
@@ -595,13 +569,13 @@ const Analyze = () => {
             <div className="text-center">
               <button
                 onClick={handleAnalyze}
-                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing || (analysisMethod === 'text' && !huggingFaceKey)}
+                disabled={(!selectedMood && !textInput.trim()) || isAnalyzing || (analysisMethod === 'text' && !openaiKey)}
                 className="px-8 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed shadow-lg"
               >
                 {isAnalyzing ? 'Analyzing...' : 'Analyze My Mood'}
               </button>
-              {analysisMethod === 'text' && !huggingFaceKey && (
-                <p className="text-sm text-red-500 mt-2">Please add your Hugging Face API key to use AI analysis</p>
+              {analysisMethod === 'text' && !openaiKey && (
+                <p className="text-sm text-red-500 mt-2">Please add your OpenAI API key to use AI analysis</p>
               )}
             </div>
           </div>
