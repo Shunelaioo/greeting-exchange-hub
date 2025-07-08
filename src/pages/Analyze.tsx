@@ -86,11 +86,11 @@ const Analyze = () => {
       const data = await response.json();
       console.log('Watson response data:', data);
       
-      // Extract emotions from Watson response
+      // Extract emotions from Watson response with proper typing
       const emotions = data.emotion?.document?.emotion || {};
       console.log('Detected emotions:', emotions);
       
-      // Find the dominant emotion
+      // Find the dominant emotion with proper type checking
       let dominantEmotion = 'calm';
       let maxScore = 0;
       
@@ -103,8 +103,9 @@ const Analyze = () => {
       };
       
       for (const [watsonEmotion, score] of Object.entries(emotions)) {
-        if (score > maxScore) {
-          maxScore = score;
+        const numericScore = typeof score === 'number' ? score : 0;
+        if (numericScore > maxScore) {
+          maxScore = numericScore;
           const mappedEmotion = emotionMapping[watsonEmotion as keyof typeof emotionMapping];
           if (mappedEmotion) {
             dominantEmotion = mappedEmotion;
@@ -113,7 +114,8 @@ const Analyze = () => {
       }
       
       // If joy score is high, might be excited instead of just happy
-      if (dominantEmotion === 'happy' && emotions.joy > 0.7) {
+      const joyScore = typeof emotions.joy === 'number' ? emotions.joy : 0;
+      if (dominantEmotion === 'happy' && joyScore > 0.7) {
         dominantEmotion = 'excited';
       }
       
