@@ -48,64 +48,62 @@ const Analyze = () => {
         throw new Error('No API key provided');
       }
 
-      const models = [
-        "j-hartmann/emotion-english-distilroberta-base",
-        "cardiffnlp/twitter-roberta-base-sentiment"
-      ];
-
-      let result = null;
+      console.log('Starting API analysis for text:', text);
       
-      for (const model of models) {
-        try {
-          console.log(`Trying model: ${model}`);
-          const response = await fetch(
-            `https://api-inference.huggingface.co/models/${model}`,
-            {
-              headers: {
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-              },
-              method: "POST",
-              body: JSON.stringify({ inputs: text }),
+      // Try emotion detection model first
+      const emotionModel = "j-hartmann/emotion-english-distilroberta-base";
+      console.log(`Trying emotion model: ${emotionModel}`);
+      
+      const emotionResponse = await fetch(
+        `https://api-inference.huggingface.co/models/${emotionModel}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: JSON.stringify({ 
+            inputs: text,
+            options: {
+              wait_for_model: true,
+              use_cache: false
             }
-          );
-
-          if (response.ok) {
-            result = await response.json();
-            console.log(`Success with model ${model}:`, result);
-            break;
-          } else {
-            const errorText = await response.text();
-            console.log(`Model ${model} failed with status ${response.status}:`, errorText);
-            continue;
-          }
-        } catch (modelError) {
-          console.log(`Model ${model} error:`, modelError);
-          continue;
+          }),
         }
+      );
+
+      console.log('API Response status:', emotionResponse.status);
+      const responseText = await emotionResponse.text();
+      console.log('API Response text:', responseText);
+
+      if (!emotionResponse.ok) {
+        throw new Error(`API request failed with status ${emotionResponse.status}: ${responseText}`);
       }
 
-      if (!result) {
-        throw new Error('All models failed');
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('Parsed API result:', result);
+      } catch (parseError) {
+        console.error('Failed to parse API response:', parseError);
+        throw new Error('Invalid API response format');
       }
-      
+
       if (Array.isArray(result) && result.length > 0) {
-        if (Array.isArray(result[0])) {
-          const topResult = result[0][0];
-          console.log('Processing result:', topResult);
-          return mapEmotionToMood(topResult.label, topResult.score, text);
-        } else {
-          const topEmotion = result[0];
-          return mapEmotionToMood(topEmotion.label, topEmotion.score, text);
-        }
+        // Sort by score to get the highest confidence emotion
+        const sortedResults = result.sort((a, b) => b.score - a.score);
+        const topEmotion = sortedResults[0];
+        console.log('Top emotion detected:', topEmotion);
+        
+        return mapEmotionToMood(topEmotion.label, topEmotion.score, text);
       }
       
-      throw new Error('Unexpected API response format');
+      throw new Error('No emotions detected in API response');
     } catch (error) {
       console.error('Error analyzing mood:', error);
       toast({
         title: "AI Analysis Failed",
-        description: "Unable to analyze with API. Please check your API key.",
+        description: `Unable to analyze with API: ${error.message}`,
         variant: "destructive"
       });
       throw error;
@@ -117,47 +115,49 @@ const Analyze = () => {
   const mapEmotionToMood = (emotion: string, score: number, text: string) => {
     const lowerEmotion = emotion.toLowerCase();
     const lowerText = text.toLowerCase();
-    console.log('Mapping emotion:', emotion, 'for text:', text);
+    console.log('Mapping emotion:', emotion, 'with score:', score, 'for text:', text);
     
-    // Enhanced mapping based on both emotion and text content
-    if (lowerEmotion.includes('joy') || lowerEmotion.includes('happiness') || lowerEmotion.includes('positive')) {
+    // Map Hugging Face emotions to our mood system
+    if (lowerEmotion.includes('joy') || lowerEmotion.includes('happiness')) {
       return 'happy';
-    } else if (lowerEmotion.includes('sadness') || lowerEmotion.includes('disappointment') || lowerEmotion.includes('negative')) {
-      // Check for specific sad emotions in text
-      if (lowerText.includes('tired') || lowerText.includes('exhausted') || lowerText.includes('drained') || lowerText.includes('weary')) {
-        return 'sad'; // Tired feelings should map to sad
-      }
+    } else if (lowerEmotion.includes('sadness') || lowerEmotion.includes('disappointment')) {
       return 'sad';
     } else if (lowerEmotion.includes('anger') || lowerEmotion.includes('annoyance')) {
       return 'angry';
-    } else if (lowerEmotion.includes('fear') || lowerEmotion.includes('nervousness') || lowerEmotion.includes('anxiety')) {
+    } else if (lowerEmotion.includes('fear') || lowerEmotion.includes('nervousness')) {
       return 'anxious';
     } else if (lowerEmotion.includes('surprise') || lowerEmotion.includes('excitement')) {
       return 'excited';
-    } else {
-      // Analyze text content for better mapping
-      if (lowerText.includes('angry') || lowerText.includes('mad') || lowerText.includes('furious')) {
-        return 'angry';
-      } else if (lowerText.includes('excited') || lowerText.includes('thrilled') || lowerText.includes('energetic')) {
-        return 'excited';
-      } else if (lowerText.includes('anxious') || lowerText.includes('worried') || lowerText.includes('stressed')) {
-        return 'anxious';
-      } else if (lowerText.includes('tired') || lowerText.includes('exhausted') || lowerText.includes('sad') || lowerText.includes('down')) {
-        return 'sad';
-      } else if (lowerText.includes('happy') || lowerText.includes('good') || lowerText.includes('great')) {
-        return 'happy';
-      }
+    } else if (lowerEmotion.includes('disgust') || lowerEmotion.includes('contempt')) {
+      return 'angry';
+    } else if (lowerEmotion.includes('trust') || lowerEmotion.includes('anticipation')) {
       return 'calm';
     }
+    
+    // Additional text-based context mapping for better accuracy
+    if (lowerText.includes('tired') || lowerText.includes('exhausted') || lowerText.includes('drained')) {
+      return 'sad';
+    } else if (lowerText.includes('excited') || lowerText.includes('thrilled') || lowerText.includes('energetic')) {
+      return 'excited';
+    } else if (lowerText.includes('worried') || lowerText.includes('anxious') || lowerText.includes('stressed')) {
+      return 'anxious';
+    } else if (lowerText.includes('angry') || lowerText.includes('mad') || lowerText.includes('furious')) {
+      return 'angry';
+    } else if (lowerText.includes('happy') || lowerText.includes('joyful') || lowerText.includes('glad')) {
+      return 'happy';
+    } else if (lowerText.includes('peaceful') || lowerText.includes('relaxed') || lowerText.includes('serene')) {
+      return 'calm';
+    }
+    
+    // Default fallback based on emotion
+    return 'calm';
   };
 
   const getMoodAnalysis = (mood: string, userText?: string) => {
     const moodOption = moodOptions.find(m => m.value === mood);
     
-    // Generate contextual messages based on user input
     const generateContextualMessage = (baseMood: string, text?: string) => {
       if (!text) {
-        // Default messages for button selection
         const defaultMessages = {
           happy: "You're radiating positive energy! Your happiness is contagious and brings light to those around you.",
           sad: "It's okay to feel sad. Your emotions are valid, and this feeling will pass. You're stronger than you know.",
@@ -171,61 +171,60 @@ const Analyze = () => {
 
       const lowerText = text.toLowerCase();
       
-      // Contextual messages based on what user actually wrote
       switch (baseMood) {
         case 'sad':
           if (lowerText.includes('tired') || lowerText.includes('exhausted')) {
-            return "Feeling tired can weigh heavily on your spirit. Your body and mind are telling you they need rest and care.";
+            return "Feeling tired can weigh heavily on your spirit. Your body and mind are telling you they need rest and care. This exhaustion is your system's way of asking for gentleness and recovery time.";
           } else if (lowerText.includes('lonely')) {
-            return "Loneliness can feel overwhelming, but you're not alone in feeling this way. Connection and support are within reach.";
+            return "Loneliness can feel overwhelming, but you're not alone in feeling this way. Connection and support are within reach, and reaching out is a sign of strength.";
           } else if (lowerText.includes('disappointed')) {
-            return "Disappointment shows how much you care about outcomes. This caring nature is actually a strength.";
+            return "Disappointment shows how much you care about outcomes. This caring nature is actually a strength, even when things don't go as planned.";
           }
-          return "Your sadness is valid and temporary. These difficult feelings often lead to growth and deeper understanding.";
+          return "Your sadness is valid and temporary. These difficult feelings often lead to growth and deeper understanding of yourself.";
           
         case 'happy':
           if (lowerText.includes('excited')) {
-            return "Your excitement is infectious! This positive energy can inspire and uplift everyone around you.";
+            return "Your excitement is infectious! This positive energy can inspire and uplift everyone around you. You're in a beautiful state of anticipation and joy.";
           } else if (lowerText.includes('grateful')) {
-            return "Gratitude transforms ordinary moments into blessings. Your appreciation for life is beautiful.";
+            return "Gratitude transforms ordinary moments into blessings. Your appreciation for life is beautiful and creates a positive ripple effect.";
           } else if (lowerText.includes('proud')) {
-            return "Feeling proud of yourself is wonderful! You've earned this moment of recognition and joy.";
+            return "Feeling proud of yourself is wonderful! You've earned this moment of recognition and joy. Celebrate your achievements.";
           }
-          return "Your happiness lights up the world around you. Embrace this beautiful energy you're radiating.";
+          return "Your happiness lights up the world around you. Embrace this beautiful energy you're radiating and let it flow freely.";
           
         case 'angry':
           if (lowerText.includes('frustrated')) {
-            return "Frustration often comes from caring deeply about something. Channel this passion constructively.";
+            return "Frustration often comes from caring deeply about something important to you. This passion can be channeled constructively once you understand its source.";
           } else if (lowerText.includes('annoyed')) {
-            return "These feelings of annoyance are signals. Take time to understand what boundaries need to be set.";
+            return "These feelings of annoyance are signals about your boundaries. Take time to understand what needs to change or what limits need to be set.";
           }
-          return "Your anger contains important information. Listen to what it's trying to tell you about your needs.";
+          return "Your anger contains important information about your values and boundaries. Listen to what it's trying to tell you about your needs.";
           
         case 'anxious':
           if (lowerText.includes('worried')) {
-            return "Worry shows how much you care about the future. Let's channel this concern into positive action.";
+            return "Worry shows how much you care about the future and the people in your life. Let's channel this concern into positive, actionable steps.";
           } else if (lowerText.includes('stressed')) {
-            return "Stress is your mind's way of highlighting what matters to you. You have the tools to manage this.";
+            return "Stress is your mind's way of highlighting what matters most to you. You have the inner tools to manage this and find your center again.";
           } else if (lowerText.includes('nervous')) {
-            return "Nervousness often appears before meaningful moments. Your courage to face this is admirable.";
+            return "Nervousness often appears before meaningful moments in life. Your courage to face these feelings shows your strength and growth.";
           }
-          return "Your anxious thoughts show how deeply you think about life. This awareness can be transformed into strength.";
+          return "Your anxious thoughts show how deeply you think about life and its possibilities. This awareness can be transformed into purposeful action.";
           
         case 'excited':
           if (lowerText.includes('thrilled')) {
-            return "Your enthusiasm is contagious! This high energy can fuel amazing achievements and experiences.";
+            return "Your enthusiasm is absolutely contagious! This high energy can fuel amazing achievements and create wonderful experiences for yourself and others.";
           } else if (lowerText.includes('energetic')) {
-            return "This vibrant energy you're feeling is a gift. Use it to pursue what truly matters to you.";
+            return "This vibrant energy you're feeling is a precious gift. Use it to pursue what truly matters to you and make positive changes.";
           }
-          return "Your excitement opens doors to new possibilities. Ride this wave of positive momentum!";
+          return "Your excitement opens doors to new possibilities and adventures. Ride this beautiful wave of positive momentum!";
           
         case 'calm':
           if (lowerText.includes('peaceful')) {
-            return "This sense of peace you're experiencing is precious. It's a foundation for clarity and wise decisions.";
+            return "This sense of peace you're experiencing is precious and healing. It's a foundation for clarity, wisdom, and meaningful decisions.";
           } else if (lowerText.includes('relaxed')) {
-            return "Your relaxed state is allowing your natural wisdom to emerge. Trust this inner guidance.";
+            return "Your relaxed state is allowing your natural wisdom and intuition to emerge. Trust this inner guidance and embrace the stillness.";
           }
-          return "Your calmness is a strength that helps you navigate life with grace and mindfulness.";
+          return "Your calmness is a strength that helps you navigate life with grace, mindfulness, and inner wisdom.";
           
         default:
           return "Your feelings are valid and important. Every emotion carries wisdom and helps you understand yourself better.";
@@ -238,40 +237,118 @@ const Analyze = () => {
       switch (baseMood) {
         case 'sad':
           if (lowerText.includes('tired') || lowerText.includes('exhausted')) {
-            return ["Get quality sleep tonight", "Take short breaks throughout the day", "Consider gentle exercise or stretching"];
+            return [
+              "Prioritize 7-9 hours of quality sleep tonight", 
+              "Take short 5-minute breaks every hour today", 
+              "Try gentle stretching or light yoga",
+              "Consider a warm bath or shower to relax",
+              "Limit caffeine and focus on hydrating foods"
+            ];
           } else if (lowerText.includes('lonely')) {
-            return ["Reach out to a friend or family member", "Join a community activity", "Practice self-compassion"];
+            return [
+              "Reach out to one friend or family member today", 
+              "Join a local community group or online community", 
+              "Practice loving-kindness meditation",
+              "Write a letter to someone you care about",
+              "Consider volunteering to connect with others"
+            ];
           }
-          return ["Allow yourself to feel this emotion", "Reach out to someone you trust", "Practice gentle self-care"];
+          return [
+            "Allow yourself to feel this emotion without judgment", 
+            "Reach out to someone you trust for support", 
+            "Practice gentle self-care activities",
+            "Consider journaling about your feelings",
+            "Take a nature walk if possible"
+          ];
           
         case 'happy':
           if (lowerText.includes('excited')) {
-            return ["Channel energy into a meaningful project", "Share your enthusiasm with others", "Document this positive moment"];
+            return [
+              "Channel this energy into a meaningful project", 
+              "Share your enthusiasm with friends and family", 
+              "Document this positive moment in a journal",
+              "Use this energy for physical activity or exercise",
+              "Plan something fun to look forward to"
+            ];
           }
-          return ["Share your joy with others", "Practice gratitude", "Engage in activities you love"];
+          return [
+            "Share your joy with others around you", 
+            "Practice gratitude by writing down three good things", 
+            "Engage in activities that bring you even more joy",
+            "Take photos or create memories of this moment",
+            "Consider doing something kind for someone else"
+          ];
           
         case 'angry':
           if (lowerText.includes('frustrated')) {
-            return ["Take a step back and breathe", "Identify what's within your control", "Express feelings through journaling"];
+            return [
+              "Take 10 deep breaths before responding", 
+              "Identify what specific aspect you can control", 
+              "Express your feelings through writing or art",
+              "Take a brief walk to clear your head",
+              "Focus on solutions rather than the problem"
+            ];
           }
-          return ["Take deep breaths", "Step away from the situation temporarily", "Express yourself in a safe way"];
+          return [
+            "Practice deep breathing for 5 minutes", 
+            "Step away from the triggering situation temporarily", 
+            "Express yourself through physical activity",
+            "Talk to a trusted friend about your feelings",
+            "Consider what boundary needs to be set"
+          ];
           
         case 'anxious':
           if (lowerText.includes('worried')) {
-            return ["Focus on what you can control today", "Practice the 5-4-3-2-1 grounding technique", "Break concerns into smaller, manageable parts"];
+            return [
+              "List what you can control vs. what you can't", 
+              "Practice the 5-4-3-2-1 grounding technique", 
+              "Break your concerns into smaller, manageable steps",
+              "Set aside 10 minutes for 'worry time' then move on",
+              "Talk to someone who can offer perspective"
+            ];
           } else if (lowerText.includes('stressed')) {
-            return ["Prioritize your most important tasks", "Take regular breaks", "Practice deep breathing exercises"];
+            return [
+              "Prioritize your top 3 most important tasks only", 
+              "Take 5-minute breaks between activities", 
+              "Practice box breathing (4-4-4-4 pattern)",
+              "Delegate tasks if possible",
+              "Focus on progress, not perfection"
+            ];
           }
-          return ["Practice breathing exercises", "Ground yourself in the present moment", "Break tasks into smaller steps"];
+          return [
+            "Practice the 4-7-8 breathing technique", 
+            "Ground yourself using your five senses", 
+            "Break overwhelming tasks into tiny steps",
+            "Limit news and social media if they increase anxiety",
+            "Consider talking to a counselor or therapist"
+          ];
           
         case 'excited':
-          return ["Set achievable goals for this energy", "Start a creative project", "Share your enthusiasm with others"];
+          return [
+            "Set specific, achievable goals for this energy", 
+            "Start a creative project you've been putting off", 
+            "Share your excitement with supportive people",
+            "Channel energy into learning something new",
+            "Plan an adventure or new experience"
+          ];
           
         case 'calm':
-          return ["Use this clarity for important decisions", "Practice meditation or mindfulness", "Help others find their peace"];
+          return [
+            "Use this clarity to make important decisions", 
+            "Practice meditation or mindfulness exercises", 
+            "Help others find their sense of peace",
+            "Reflect on your goals and values",
+            "Create a peaceful environment around you"
+          ];
           
         default:
-          return ["Listen to your inner wisdom", "Take care of your basic needs", "Be patient with yourself"];
+          return [
+            "Listen to your inner wisdom and intuition", 
+            "Take care of your basic needs (sleep, food, water)", 
+            "Be patient and gentle with yourself",
+            "Consider what this emotion is trying to tell you",
+            "Seek support if you need it"
+          ];
       }
     };
 
