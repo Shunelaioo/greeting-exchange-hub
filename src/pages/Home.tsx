@@ -1,8 +1,10 @@
-
 import { Link } from 'react-router-dom';
 import { Brain, Calendar, BarChart3, Heart, Zap, Sun, Sparkles, Star, Moon, Rainbow, Flower2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Home = () => {
+  const { user } = useAuth();
+
   const features = [
     {
       icon: Brain,
@@ -91,27 +93,58 @@ const Home = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-            <Link 
-              to="/analyze"
-              className="group relative px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-2xl font-bold text-base hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-105 animate-glow overflow-hidden"
-            >
-              <span className="relative z-10 flex items-center justify-center">
-                <Sparkles className="mr-2 h-5 w-5 animate-spin" />
-                Start Your Journey
-                <Heart className="ml-2 h-5 w-5 animate-pulse" />
-              </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
-            </Link>
-            <Link 
-              to="/journey"
-              className="group px-6 py-3 border-3 border-purple-600 text-purple-600 rounded-2xl font-bold text-base hover:bg-purple-600 hover:text-white transition-all duration-500 shadow-xl hover:shadow-2xl transform hover:scale-105 glass-effect backdrop-blur-lg bg-white/30 hover:border-pink-500"
-            >
-              <span className="flex items-center justify-center">
-                <Calendar className="mr-2 h-5 w-5 group-hover:animate-bounce" />
-                Begin Adventure
-                <Star className="ml-2 h-5 w-5 group-hover:animate-spin" />
-              </span>
-            </Link>
+            {user ? (
+              // Show main action buttons for authenticated users
+              <>
+                <Link 
+                  to="/analyze"
+                  className="group relative px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-2xl font-bold text-base hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-105 animate-glow overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center justify-center">
+                    <Brain className="mr-2 h-5 w-5 animate-pulse" />
+                    Analyze Mood
+                    <Sparkles className="ml-2 h-5 w-5 animate-spin" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+                </Link>
+                <Link 
+                  to="/journey"
+                  className="group px-6 py-3 border-3 border-purple-600 text-purple-600 rounded-2xl font-bold text-base hover:bg-purple-600 hover:text-white transition-all duration-500 shadow-xl hover:shadow-2xl transform hover:scale-105 glass-effect backdrop-blur-lg bg-white/30 hover:border-pink-500"
+                >
+                  <span className="flex items-center justify-center">
+                    <Calendar className="mr-2 h-5 w-5 group-hover:animate-bounce" />
+                    Start Your Journey
+                    <Star className="ml-2 h-5 w-5 group-hover:animate-spin" />
+                  </span>
+                </Link>
+              </>
+            ) : (
+              // Show auth buttons for non-authenticated users
+              <>
+                <Link 
+                  to="/auth"
+                  className="group relative px-6 py-3 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 text-white rounded-2xl font-bold text-base hover:from-purple-700 hover:via-pink-700 hover:to-indigo-700 transition-all duration-500 shadow-2xl hover:shadow-3xl transform hover:scale-105 animate-glow overflow-hidden"
+                >
+                  <span className="relative z-10 flex items-center justify-center">
+                    <Sparkles className="mr-2 h-5 w-5 animate-spin" />
+                    Register
+                    <Heart className="ml-2 h-5 w-5 animate-pulse" />
+                  </span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+                </Link>
+                <Link 
+                  to="/auth"
+                  state={{ isLogin: true }}
+                  className="group px-6 py-3 border-3 border-purple-600 text-purple-600 rounded-2xl font-bold text-base hover:bg-purple-600 hover:text-white transition-all duration-500 shadow-xl hover:shadow-2xl transform hover:scale-105 glass-effect backdrop-blur-lg bg-white/30 hover:border-pink-500"
+                >
+                  <span className="flex items-center justify-center">
+                    <Calendar className="mr-2 h-5 w-5 group-hover:animate-bounce" />
+                    Login
+                    <Star className="ml-2 h-5 w-5 group-hover:animate-spin" />
+                  </span>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -120,45 +153,86 @@ const Home = () => {
       <section className="container mx-auto px-4 py-24 relative z-10">
         <div className="text-center mb-20 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-8 tracking-tight">Choose Your Path</h2>
-          <p className="text-gray-700 text-xl max-w-3xl mx-auto font-medium leading-relaxed">Select how you'd like to explore your emotional well-being with our magical, intuitive tools</p>
+          <p className="text-gray-700 text-xl max-w-3xl mx-auto font-medium leading-relaxed">
+            {user 
+              ? "Select how you'd like to explore your emotional well-being with our magical, intuitive tools"
+              : "Sign in to unlock the full power of our mood tracking and analysis tools"
+            }
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-8xl mx-auto">
           {features.map((feature, index) => (
-            <Link 
-              key={index}
-              to={feature.link}
-              className="group animate-fade-in transform hover:scale-105 transition-all duration-500"
-              style={{animationDelay: `${index * 0.3}s`}}
-            >
-              <div className="relative p-10 bg-white/90 backdrop-blur-lg rounded-4xl shadow-2xl border-2 border-white/60 overflow-hidden hover:shadow-3xl transition-all duration-500 hover:border-purple-300/50">
-                {/* Enhanced background gradient effect */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-700`}></div>
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.hoverGradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-xl`}></div>
-                
-                <div className="relative z-10">
-                  <div className={`inline-flex p-8 rounded-4xl ${feature.iconBg} mb-10 group-hover:scale-125 transition-transform duration-500 shadow-xl group-hover:shadow-2xl border-2 border-white/50`}>
-                    <feature.icon className={`h-12 w-12 ${feature.iconColor} group-hover:animate-pulse`} />
+            user ? (
+              <Link 
+                key={index}
+                to={feature.link}
+                className="group animate-fade-in transform hover:scale-105 transition-all duration-500"
+                style={{animationDelay: `${index * 0.3}s`}}
+              >
+                <div className="relative p-10 bg-white/90 backdrop-blur-lg rounded-4xl shadow-2xl border-2 border-white/60 overflow-hidden hover:shadow-3xl transition-all duration-500 hover:border-purple-300/50">
+                  {/* Enhanced background gradient effect */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-700`}></div>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.hoverGradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-xl`}></div>
+                  
+                  <div className="relative z-10">
+                    <div className={`inline-flex p-8 rounded-4xl ${feature.iconBg} mb-10 group-hover:scale-125 transition-transform duration-500 shadow-xl group-hover:shadow-2xl border-2 border-white/50`}>
+                      <feature.icon className={`h-12 w-12 ${feature.iconColor} group-hover:animate-pulse`} />
+                    </div>
+                    
+                    <h3 className="text-2xl font-black text-gray-800 mb-6 group-hover:text-purple-700 transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    
+                    <p className="text-gray-600 leading-relaxed mb-8 text-base font-medium">
+                      {feature.description}
+                    </p>
+                    
+                    <div className="inline-flex items-center text-purple-600 font-bold text-lg group-hover:text-purple-700 group-hover:scale-105 transition-all duration-300">
+                      <Sparkles className="mr-2 h-5 w-5 group-hover:animate-spin" />
+                      Get Started
+                      <svg className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
+                </div>
+              </Link>
+            ) : (
+              <div 
+                key={index}
+                className="group animate-fade-in transform hover:scale-105 transition-all duration-500 cursor-not-allowed opacity-75"
+                style={{animationDelay: `${index * 0.3}s`}}
+              >
+                <div className="relative p-10 bg-white/90 backdrop-blur-lg rounded-4xl shadow-2xl border-2 border-white/60 overflow-hidden hover:shadow-3xl transition-all duration-500 hover:border-purple-300/50">
+                  {/* Enhanced background gradient effect */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-15 transition-opacity duration-700`}></div>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.hoverGradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 blur-xl`}></div>
                   
-                  <h3 className="text-2xl font-black text-gray-800 mb-6 group-hover:text-purple-700 transition-colors duration-300">
-                    {feature.title}
-                  </h3>
-                  
-                  <p className="text-gray-600 leading-relaxed mb-8 text-base font-medium">
-                    {feature.description}
-                  </p>
-                  
-                  <div className="inline-flex items-center text-purple-600 font-bold text-lg group-hover:text-purple-700 group-hover:scale-105 transition-all duration-300">
-                    <Sparkles className="mr-2 h-5 w-5 group-hover:animate-spin" />
-                    Get Started
-                    <svg className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                    </svg>
+                  <div className="relative z-10">
+                    <div className={`inline-flex p-8 rounded-4xl ${feature.iconBg} mb-10 group-hover:scale-125 transition-transform duration-500 shadow-xl group-hover:shadow-2xl border-2 border-white/50`}>
+                      <feature.icon className={`h-12 w-12 ${feature.iconColor} group-hover:animate-pulse`} />
+                    </div>
+                    
+                    <h3 className="text-2xl font-black text-gray-800 mb-6 group-hover:text-purple-700 transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    
+                    <p className="text-gray-600 leading-relaxed mb-8 text-base font-medium">
+                      {feature.description}
+                    </p>
+                    
+                    <div className="inline-flex items-center text-purple-600 font-bold text-lg group-hover:text-purple-700 group-hover:scale-105 transition-all duration-300">
+                      <Sparkles className="mr-2 h-5 w-5 group-hover:animate-spin" />
+                      Get Started
+                      <svg className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
-            </Link>
+            )
           ))}
         </div>
       </section>

@@ -1,10 +1,21 @@
 
 import { useState } from 'react';
-import { Menu, X, Brain, LogIn } from 'lucide-react';
+import { Menu, X, Brain, LogIn, LogOut, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -21,26 +32,46 @@ const Header = () => {
             <Link to="/" className="text-gray-600 hover:text-purple-600 transition-colors">
               Home
             </Link>
-            <Link to="/analyze" className="text-gray-600 hover:text-purple-600 transition-colors">
-              Analyze Mood
-            </Link>
-            <Link to="/journey" className="text-gray-600 hover:text-purple-600 transition-colors">
-              Mood Journey
-            </Link>
-            <Link to="/history" className="text-gray-600 hover:text-purple-600 transition-colors">
-              History
-            </Link>
+            {user ? (
+              <>
+                <Link to="/analyze" className="text-gray-600 hover:text-purple-600 transition-colors">
+                  Analyze Mood
+                </Link>
+                <Link to="/journey" className="text-gray-600 hover:text-purple-600 transition-colors">
+                  Mood Journey
+                </Link>
+                <Link to="/history" className="text-gray-600 hover:text-purple-600 transition-colors">
+                  History
+                </Link>
+              </>
+            ) : null}
           </nav>
 
-          {/* Login Button & Mobile Menu */}
+          {/* Auth Section & Mobile Menu */}
           <div className="flex items-center space-x-4">
-            <Link
-              to="/login"
-              className="hidden md:flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              <LogIn className="h-4 w-4" />
-              <span>Login</span>
-            </Link>
+            {user ? (
+              <div className="hidden md:flex items-center space-x-4">
+                <div className="flex items-center space-x-2 text-gray-600">
+                  <User className="h-4 w-4" />
+                  <span className="text-sm">{user.email}</span>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/auth"
+                className="hidden md:flex items-center space-x-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Login</span>
+              </Link>
+            )}
 
             {/* Mobile Menu Button */}
             <button
@@ -63,35 +94,51 @@ const Header = () => {
               >
                 Home
               </Link>
-              <Link 
-                to="/analyze" 
-                className="text-gray-600 hover:text-purple-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Analyze Mood
-              </Link>
-              <Link 
-                to="/journey" 
-                className="text-gray-600 hover:text-purple-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Mood Journey
-              </Link>
-              <Link 
-                to="/history" 
-                className="text-gray-600 hover:text-purple-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                History
-              </Link>
-              <Link 
-                to="/login" 
-                className="flex items-center space-x-2 text-purple-600 hover:text-purple-700 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <LogIn className="h-4 w-4" />
-                <span>Login</span>
-              </Link>
+              {user ? (
+                <>
+                  <Link 
+                    to="/analyze" 
+                    className="text-gray-600 hover:text-purple-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Analyze Mood
+                  </Link>
+                  <Link 
+                    to="/journey" 
+                    className="text-gray-600 hover:text-purple-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Mood Journey
+                  </Link>
+                  <Link 
+                    to="/history" 
+                    className="text-gray-600 hover:text-purple-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    History
+                  </Link>
+                  <div className="flex items-center space-x-2 text-gray-600 pt-2 border-t border-gray-200">
+                    <User className="h-4 w-4" />
+                    <span className="text-sm">{user.email}</span>
+                  </div>
+                  <button 
+                    onClick={handleSignOut}
+                    className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </button>
+                </>
+              ) : (
+                <Link 
+                  to="/auth" 
+                  className="flex items-center space-x-2 text-purple-600 hover:text-purple-700 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span>Login</span>
+                </Link>
+              )}
             </div>
           </nav>
         )}
