@@ -1,41 +1,98 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Calendar as CalendarIcon, Filter, ChevronLeft, ChevronRight, Sparkles, Heart, Star } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+
+interface MoodEntry {
+  id: string;
+  mood: string;
+  emoji: string;
+  feelings_text: string;
+  weather?: string;
+  theme?: string;
+  message?: string;
+  suggested_activities?: any;
+  created_at: string;
+}
+
+interface ChartData {
+  date: string;
+  mood: number;
+  sleep: number;
+  weather: string;
+  formattedDate: string;
+}
 
 const History = () => {
+  const { user } = useAuth();
   const [viewType, setViewType] = useState<'line' | 'bar'>('line');
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month');
   const [showCalendar, setShowCalendar] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
 
-  // Mock data - in a real app, this would come from your database
-  const mockData = [
-    { date: '2024-01-01', mood: 7, sleep: 8, weather: 'sunny' },
-    { date: '2024-01-02', mood: 6, sleep: 6, weather: 'cloudy' },
-    { date: '2024-01-03', mood: 8, sleep: 9, weather: 'sunny' },
-    { date: '2024-01-04', mood: 5, sleep: 5, weather: 'rainy' },
-    { date: '2024-01-05', mood: 7, sleep: 7, weather: 'cloudy' },
-    { date: '2024-01-06', mood: 9, sleep: 8, weather: 'sunny' },
-    { date: '2024-01-07', mood: 6, sleep: 6, weather: 'rainy' },
-    { date: '2024-01-08', mood: 8, sleep: 8, weather: 'sunny' },
-    { date: '2024-01-09', mood: 7, sleep: 7, weather: 'cloudy' },
-    { date: '2024-01-10', mood: 9, sleep: 9, weather: 'sunny' },
-    { date: '2024-01-11', mood: 5, sleep: 5, weather: 'stormy' },
-    { date: '2024-01-12', mood: 6, sleep: 6, weather: 'rainy' },
-    { date: '2024-01-13', mood: 8, sleep: 8, weather: 'sunny' },
-    { date: '2024-01-14', mood: 7, sleep: 7, weather: 'cloudy' },
-  ];
+  // Fetch mood entries from Supabase
+  const { data: moodEntries = [], isLoading, error } = useQuery({
+    queryKey: ['mood-entries', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await supabase
+        .from('mood_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching mood entries:', error);
+        throw error;
+      }
+      
+      return data as MoodEntry[];
+    },
+    enabled: !!user,
+  });
+
+  // Convert mood text to number for charts
+  const getMoodScore = (mood: string): number => {
+    const moodMap: { [key: string]: number } = {
+      'terrible': 1,
+      'bad': 2,
+      'poor': 3,
+      'okay': 4,
+      'neutral': 5,
+      'good': 6,
+      'great': 7,
+      'excellent': 8,
+      'amazing': 9,
+      'perfect': 10
+    };
+    return moodMap[mood.toLowerCase()] || 5;
+  };
+
+  // Process data for charts
+  const chartData: ChartData[] = moodEntries.map(entry => ({
+    date: entry.created_at,
+    mood: getMoodScore(entry.mood),
+    sleep: Math.floor(Math.random() * 5) + 6, // Placeholder for sleep data
+    weather: entry.weather || 'unknown',
+    formattedDate: formatDate(entry.created_at)
+  })).reverse();
 
   const getAverageMood = () => {
-    const sum = mockData.reduce((acc, day) => acc + day.mood, 0);
-    return (sum / mockData.length).toFixed(1);
+    if (chartData.length === 0) return '0.0';
+    const sum = chartData.reduce((acc, day) => acc + day.mood, 0);
+    return (sum / chartData.length).toFixed(1);
   };
 
   const getTrend = () => {
-    const recent = mockData.slice(-7);
-    const older = mockData.slice(-14, -7);
+    if (chartData.length < 7) return 'stable';
+    const recent = chartData.slice(-7);
+    const older = chartData.slice(-14, -7);
+    if (older.length === 0) return 'stable';
+    
     const recentAvg = recent.reduce((acc, day) => acc + day.mood, 0) / recent.length;
     const olderAvg = older.reduce((acc, day) => acc + day.mood, 0) / older.length;
     return recentAvg > olderAvg ? 'improving' : recentAvg < olderAvg ? 'declining' : 'stable';
@@ -56,7 +113,7 @@ const History = () => {
 
   const getMoodData = (date: Date) => {
     const dateString = date.toISOString().split('T')[0];
-    return mockData.find(data => data.date === dateString);
+    return chartData.find(data => data.date.startsWith(dateString));
   };
 
   const generateCalendarDays = (month: Date) => {
@@ -94,10 +151,52 @@ const History = () => {
     });
   };
 
-  const chartData = mockData.map(day => ({
-    ...day,
-    formattedDate: formatDate(day.date)
-  }));
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 py-12 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Please log in to view your mood history</h2>
+          <p className="text-gray-600">You need to be logged in to see your personal mood journey.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 py-12 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 py-12 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Error loading mood history</h2>
+          <p className="text-gray-600">There was an error loading your mood data. Please try again later.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (moodEntries.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 py-12 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">No mood entries yet</h2>
+          <p className="text-gray-600 mb-6">Start tracking your mood to see your beautiful journey here!</p>
+          <a 
+            href="/analyze" 
+            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition-transform duration-300"
+          >
+            Analyze Your Mood
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-100 py-12 relative overflow-hidden">
@@ -175,7 +274,7 @@ const History = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-base font-medium mb-2">Days Tracked</p>
-                  <p className="text-3xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{mockData.length}</p>
+                  <p className="text-3xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{moodEntries.length}</p>
                 </div>
                 <div className="p-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-500">
                   <CalendarIcon className="h-8 w-8 text-purple-600 group-hover:animate-pulse" />
