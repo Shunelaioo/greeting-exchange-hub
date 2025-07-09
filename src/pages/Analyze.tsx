@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
-import { Brain, Sparkles, Heart, Sun, Cloud, CloudRain, Snowflake, Star } from 'lucide-react';
+import { Brain, Sparkles, Heart, Sun, Cloud, CloudRain, Snowflake, Star, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import EmotionalChatbot from '@/components/EmotionalChatbot';
 
 const Analyze = () => {
   const { user } = useAuth();
@@ -12,6 +12,7 @@ const Analyze = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [selectedWeather, setSelectedWeather] = useState('');
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const weatherOptions = [
     { value: 'sunny', label: 'Sunny', icon: Sun },
@@ -174,7 +175,6 @@ const Analyze = () => {
         <div className="absolute bottom-32 right-20 w-96 h-96 rounded-full bg-gradient-to-r from-blue-300/30 to-cyan-300/30 animate-float blur-xl" style={{animationDelay: '2s'}}></div>
         <div className="absolute top-1/2 left-1/3 w-64 h-64 rounded-full bg-gradient-to-r from-pink-300/40 to-purple-300/40 animate-float blur-lg" style={{animationDelay: '4s'}}></div>
         
-        {/* Sparkle decorations */}
         <Sparkles className="absolute top-32 right-1/4 h-6 w-6 text-purple-400 animate-sparkle drop-shadow-lg" />
         <Heart className="absolute bottom-40 left-1/4 h-8 w-8 text-pink-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '1s'}} />
         <Star className="absolute top-2/3 right-10 h-5 w-5 text-blue-400 animate-sparkle drop-shadow-lg" style={{animationDelay: '3s'}} />
@@ -288,6 +288,19 @@ const Analyze = () => {
                 </p>
               </div>
 
+              {/* Emotional Support Chat Button */}
+              <div className="text-center mb-8">
+                <button
+                  onClick={() => setShowChatbot(true)}
+                  className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-lg hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl flex items-center mx-auto space-x-3"
+                >
+                  <MessageSquare className="h-6 w-6" />
+                  <span>Chat with Emotional Support AI</span>
+                  <Heart className="h-5 w-5 animate-pulse" />
+                </button>
+                <p className="text-gray-600 text-sm mt-2">Get personalized emotional support and guidance</p>
+              </div>
+
               {result.suggested_activities && result.suggested_activities.length > 0 && (
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border-2 border-white/60">
                   <h3 className="text-2xl font-black text-gray-800 mb-6 text-center flex items-center justify-center">
@@ -313,6 +326,15 @@ const Analyze = () => {
           )}
         </div>
       </div>
+
+      {/* Emotional Support Chatbot */}
+      {showChatbot && (
+        <EmotionalChatbot
+          mood={result?.mood}
+          context={feelingsText}
+          onClose={() => setShowChatbot(false)}
+        />
+      )}
     </div>
   );
 };
