@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Calendar as CalendarIcon, Filter, ChevronLeft, ChevronRight, Sparkles, Heart, Star } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -20,7 +21,6 @@ interface MoodEntry {
 interface ChartData {
   date: string;
   mood: number;
-  sleep: number;
   weather: string;
   formattedDate: string;
 }
@@ -72,11 +72,15 @@ const History = () => {
     return moodMap[mood.toLowerCase()] || 5;
   };
 
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   // Process data for charts
   const chartData: ChartData[] = moodEntries.map(entry => ({
     date: entry.created_at,
     mood: getMoodScore(entry.mood),
-    sleep: Math.floor(Math.random() * 5) + 6, // Placeholder for sleep data
     weather: entry.weather || 'unknown',
     formattedDate: formatDate(entry.created_at)
   })).reverse();
@@ -98,11 +102,6 @@ const History = () => {
     return recentAvg > olderAvg ? 'improving' : recentAvg < olderAvg ? 'declining' : 'stable';
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
   const getMoodEmoji = (moodScore: number) => {
     if (moodScore >= 9) return '😄';
     if (moodScore >= 7) return '😊';
@@ -113,7 +112,15 @@ const History = () => {
 
   const getMoodData = (date: Date) => {
     const dateString = date.toISOString().split('T')[0];
-    return chartData.find(data => data.date.startsWith(dateString));
+    const entry = moodEntries.find(entry => entry.created_at.startsWith(dateString));
+    if (entry) {
+      return {
+        mood: getMoodScore(entry.mood),
+        emoji: entry.emoji,
+        moodText: entry.mood
+      };
+    }
+    return null;
   };
 
   const generateCalendarDays = (month: Date) => {
@@ -376,7 +383,6 @@ const History = () => {
                   }
                   
                   const moodData = getMoodData(day);
-                  const emoji = moodData ? getMoodEmoji(moodData.mood) : '';
                   const dayKey = day.toISOString();
                   
                   return (
@@ -391,12 +397,14 @@ const History = () => {
                       onMouseLeave={() => setHoveredDay(null)}
                     >
                       <div className="text-base text-gray-800 font-bold mb-1">{day.getDate()}</div>
-                      {emoji && hoveredDay === dayKey && (
-                        <div 
-                          className="text-2xl animate-fade-in animate-bounce" 
-                          title={`Mood: ${moodData?.mood}/10`}
-                        >
-                          {emoji}
+                      {moodData && (
+                        <div className="text-2xl animate-fade-in">
+                          {hoveredDay === dayKey ? moodData.emoji : '●'}
+                        </div>
+                      )}
+                      {moodData && hoveredDay === dayKey && (
+                        <div className="text-xs text-gray-600 mt-1 font-medium">
+                          {moodData.moodText}
                         </div>
                       )}
                     </div>
@@ -423,14 +431,14 @@ const History = () => {
               </div>
               
               <div className="mt-4 text-center text-base text-gray-600 font-medium">
-                Hover over a day to see your mood emoji! ✨
+                Hover over a day to see your mood details! ✨
               </div>
             </div>
           )}
 
           {/* Chart with matching font sizes */}
           <div className="bg-gradient-to-r from-white/95 via-blue-50/90 to-green-50/90 backdrop-blur-lg rounded-2xl shadow-2xl p-8 mb-12 border-2 border-white/50 animate-fade-in" style={{animationDelay: '0.8s'}}>
-            <h3 className="text-2xl font-black text-gray-800 mb-8 text-center">Mood & Sleep Patterns 📊</h3>
+            <h3 className="text-2xl font-black text-gray-800 mb-8 text-center">Your Mood Journey 📊</h3>
             <div className="h-96">
               <ResponsiveContainer width="100%" height="100%">
                 {viewType === 'line' ? (
@@ -457,22 +465,10 @@ const History = () => {
                       dot={{ fill: '#3B82F6', strokeWidth: 3, r: 6 }}
                       name="Mood (1-10)"
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="sleep" 
-                      stroke="url(#sleepGradient)"
-                      strokeWidth={4}
-                      dot={{ fill: '#10B981', strokeWidth: 3, r: 6 }}
-                      name="Sleep Quality (1-10)"
-                    />
                     <defs>
                       <linearGradient id="moodGradient" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stopColor="#3B82F6" />
                         <stop offset="100%" stopColor="#8B5CF6" />
-                      </linearGradient>
-                      <linearGradient id="sleepGradient" x1="0" y1="0" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#10B981" />
-                        <stop offset="100%" stopColor="#06B6D4" />
                       </linearGradient>
                     </defs>
                   </LineChart>
@@ -493,15 +489,10 @@ const History = () => {
                     />
                     <Legend />
                     <Bar dataKey="mood" fill="url(#moodBarGradient)" name="Mood (1-10)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="sleep" fill="url(#sleepBarGradient)" name="Sleep Quality (1-10)" radius={[4, 4, 0, 0]} />
                     <defs>
                       <linearGradient id="moodBarGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#8B5CF6" />
                         <stop offset="100%" stopColor="#3B82F6" />
-                      </linearGradient>
-                      <linearGradient id="sleepBarGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#06B6D4" />
-                        <stop offset="100%" stopColor="#10B981" />
                       </linearGradient>
                     </defs>
                   </BarChart>
@@ -517,13 +508,13 @@ const History = () => {
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl border-2 border-white/60 hover:shadow-2xl transition-all duration-500 hover:scale-105 group">
                 <div className="flex items-center mb-4">
                   <div className="p-3 bg-gradient-to-r from-blue-100 to-purple-100 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-2xl">💤</span>
+                    <span className="text-2xl">🌟</span>
                   </div>
-                  <h4 className="font-black text-xl text-gray-800">Sleep Impact</h4>
+                  <h4 className="font-black text-xl text-gray-800">Mood Patterns</h4>
                 </div>
                 <p className="text-gray-700 text-base leading-relaxed font-medium">
-                  Your mood tends to be higher on days when you get better sleep. 
-                  Consider maintaining a consistent sleep schedule for better emotional well-being and more joyful days! 🌙
+                  Your mood journey shows beautiful patterns and growth over time. 
+                  Keep tracking to discover more insights about your emotional well-being! 💫
                 </p>
               </div>
               
@@ -535,8 +526,8 @@ const History = () => {
                   <h4 className="font-black text-xl text-gray-800">Weather Correlation</h4>
                 </div>
                 <p className="text-gray-700 text-base leading-relaxed font-medium">
-                  Sunny days appear to positively influence your mood! 
-                  On cloudy or rainy days, try indoor activities that bring you joy and light up your beautiful soul. 🌈
+                  Weather can influence your mood! Track how different conditions affect your feelings
+                  and use this awareness to brighten even the cloudiest days. 🌈
                 </p>
               </div>
             </div>
