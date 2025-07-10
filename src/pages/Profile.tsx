@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from 'react';
-import { User, Save, Camera, MapPin, Globe, Phone, Calendar, FileText, AtSign, Mail } from 'lucide-react';
+import { User, Save, MapPin, Globe, Phone, Calendar, FileText, AtSign, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import AvatarUpload from '@/components/AvatarUpload';
 
 interface ProfileData {
   username: string;
@@ -32,6 +33,21 @@ const Profile = () => {
     location: '',
     website: ''
   });
+
+  // Get user's initials for avatar
+  const getUserInitials = () => {
+    if (profileData.full_name) {
+      const names = profileData.full_name.split(' ');
+      if (names.length >= 2) {
+        return `${names[0].charAt(0)}${names[1].charAt(0)}`.toUpperCase();
+      }
+      return names[0].charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
 
   useEffect(() => {
     if (user) {
@@ -129,6 +145,12 @@ const Profile = () => {
     }));
   };
 
+  const handleAvatarChange = (file: File) => {
+    // For now, just show success message
+    // In a real app, you would upload to storage here
+    console.log('Avatar file selected:', file);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-100">
@@ -169,14 +191,10 @@ const Profile = () => {
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 border border-white/50 animate-fade-in">
           {/* Avatar Section */}
           <div className="flex flex-col items-center mb-10">
-            <div className="relative group">
-              <div className="w-32 h-32 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-2xl">
-                <User className="h-16 w-16 text-white" />
-              </div>
-              <button className="absolute bottom-2 right-2 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all group-hover:scale-110">
-                <Camera className="h-5 w-5 text-gray-600" />
-              </button>
-            </div>
+            <AvatarUpload 
+              userInitials={getUserInitials()}
+              onAvatarChange={handleAvatarChange}
+            />
             <p className="text-gray-500 text-sm mt-3">Click to change avatar</p>
           </div>
 

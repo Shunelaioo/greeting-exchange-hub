@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
-import { Menu, X, Brain, LogIn, LogOut, User, Settings } from 'lucide-react';
+import { Menu, X, Brain, LogIn, LogOut, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,6 +16,14 @@ const Header = () => {
     } catch (error) {
       console.error('Error signing out:', error);
     }
+  };
+
+  // Get user's initials for avatar fallback
+  const getUserInitials = () => {
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
   };
 
   return (
@@ -51,16 +60,16 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="hidden md:flex items-center space-x-4">
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <User className="h-4 w-4" />
-                  <span className="text-sm">{user.email}</span>
-                </div>
                 <Link
                   to="/profile"
-                  className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex items-center hover:scale-105 transition-transform"
                 >
-                  <Settings className="h-4 w-4" />
-                  <span>Profile</span>
+                  <Avatar className="h-10 w-10 cursor-pointer border-2 border-transparent hover:border-purple-300 transition-colors">
+                    <AvatarImage src="" alt="Profile" />
+                    <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -124,18 +133,21 @@ const Header = () => {
                   >
                     History
                   </Link>
-                  <div className="flex items-center space-x-2 text-gray-600 pt-2 border-t border-gray-200">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm">{user.email}</span>
+                  <div className="flex items-center space-x-3 pt-2 border-t border-gray-200">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src="" alt="Profile" />
+                        <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>Profile Settings</span>
+                    </Link>
                   </div>
-                  <Link 
-                    to="/profile" 
-                    className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Settings className="h-4 w-4" />
-                    <span>Profile Settings</span>
-                  </Link>
                   <button 
                     onClick={handleSignOut}
                     className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
