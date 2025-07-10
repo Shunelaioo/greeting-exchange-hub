@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Menu, X, Brain, LogIn, LogOut, User } from 'lucide-react';
+import { Menu, X, Brain, LogIn, LogOut, User, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -55,6 +55,13 @@ const Header = () => {
                   <User className="h-4 w-4" />
                   <span className="text-sm">{user.email}</span>
                 </div>
+                <Link
+                  to="/profile"
+                  className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
@@ -121,6 +128,14 @@ const Header = () => {
                     <User className="h-4 w-4" />
                     <span className="text-sm">{user.email}</span>
                   </div>
+                  <Link 
+                    to="/profile" 
+                    className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Profile Settings</span>
+                  </Link>
                   <button 
                     onClick={handleSignOut}
                     className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
