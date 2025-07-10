@@ -16,6 +16,7 @@ interface ProfileData {
   date_of_birth: string;
   location: string;
   website: string;
+  avatar_url: string;
 }
 
 const Profile = () => {
@@ -31,7 +32,8 @@ const Profile = () => {
     phone: '',
     date_of_birth: '',
     location: '',
-    website: ''
+    website: '',
+    avatar_url: ''
   });
 
   // Get user's initials for avatar
@@ -79,7 +81,8 @@ const Profile = () => {
           phone: data.phone || '',
           date_of_birth: data.date_of_birth || '',
           location: data.location || '',
-          website: data.website || ''
+          website: data.website || '',
+          avatar_url: data.avatar_url || ''
         });
       } else {
         // Create initial profile if it doesn't exist
@@ -117,6 +120,7 @@ const Profile = () => {
           date_of_birth: profileData.date_of_birth || null,
           location: profileData.location || null,
           website: profileData.website || null,
+          avatar_url: profileData.avatar_url || null,
           updated_at: new Date().toISOString()
         });
 
@@ -145,10 +149,11 @@ const Profile = () => {
     }));
   };
 
-  const handleAvatarChange = (file: File) => {
-    // For now, just show success message
-    // In a real app, you would upload to storage here
-    console.log('Avatar file selected:', file);
+  const handleAvatarChange = (avatarUrl: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      avatar_url: avatarUrl
+    }));
   };
 
   if (loading) {
@@ -192,6 +197,7 @@ const Profile = () => {
           {/* Avatar Section */}
           <div className="flex flex-col items-center mb-10">
             <AvatarUpload 
+              currentAvatar={profileData.avatar_url}
               userInitials={getUserInitials()}
               onAvatarChange={handleAvatarChange}
             />

@@ -1,12 +1,14 @@
 
-import { useState } from 'react';
-import { Menu, X, Brain, LogIn, LogOut, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Menu, X, Brain, LogIn, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { supabase } from '@/integrations/supabase/client';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -25,6 +27,24 @@ const Header = () => {
     }
     return 'U';
   };
+
+  // Fetch user's avatar from profile
+  useEffect(() => {
+    if (user) {
+      const fetchAvatar = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+        
+        if (data?.avatar_url) {
+          setAvatarUrl(data.avatar_url);
+        }
+      };
+      fetchAvatar();
+    }
+  }, [user]);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -65,7 +85,7 @@ const Header = () => {
                   className="flex items-center hover:scale-105 transition-transform"
                 >
                   <Avatar className="h-10 w-10 cursor-pointer border-2 border-transparent hover:border-purple-300 transition-colors">
-                    <AvatarImage src="" alt="Profile" />
+                    <AvatarImage src={avatarUrl} alt="Profile" />
                     <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold">
                       {getUserInitials()}
                     </AvatarFallback>
@@ -140,7 +160,7 @@ const Header = () => {
                       className="flex items-center space-x-2 text-gray-600 hover:text-purple-600 transition-colors"
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src="" alt="Profile" />
+                        <AvatarImage src={avatarUrl} alt="Profile" />
                         <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm">
                           {getUserInitials()}
                         </AvatarFallback>

@@ -65,17 +65,36 @@ const Home = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 relative z-10">
         <div className="text-center max-w-6xl mx-auto animate-fade-in">
+          {/* Magical Brain Animation */}
           <div className="flex justify-center mb-8">
             <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 rounded-full blur-xl opacity-60 animate-glow group-hover:opacity-90 transition-opacity"></div>
-              <div className="absolute inset-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full blur-lg opacity-40 animate-pulse"></div>
-              <div className="relative p-6 bg-white/90 backdrop-blur-sm rounded-full shadow-2xl border-4 border-white/80 group-hover:scale-110 transition-transform duration-500 animate-float">
-                <Brain className="h-16 w-16 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 animate-pulse" />
+              {/* Multiple glow layers for magical effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-pink-600 to-indigo-600 rounded-full blur-2xl opacity-60 animate-glow group-hover:opacity-90 transition-opacity"></div>
+              <div className="absolute inset-2 bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 rounded-full blur-lg opacity-40 animate-pulse"></div>
+              <div className="absolute inset-4 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full blur-md opacity-30 animate-float"></div>
+              
+              {/* Main brain container */}
+              <div className="relative p-8 bg-white/90 backdrop-blur-sm rounded-full shadow-2xl border-4 border-white/80 group-hover:scale-110 transition-transform duration-500 animate-float">
+                <Brain className="h-20 w-20 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 animate-pulse" />
+                
+                {/* Neural network lines */}
+                <div className="absolute inset-0 rounded-full">
+                  <div className="absolute top-1/4 left-1/4 w-6 h-0.5 bg-gradient-to-r from-purple-400 to-transparent animate-pulse opacity-70"></div>
+                  <div className="absolute top-3/4 right-1/4 w-8 h-0.5 bg-gradient-to-l from-pink-400 to-transparent animate-pulse opacity-70" style={{animationDelay: '0.5s'}}></div>
+                  <div className="absolute bottom-1/3 left-1/3 w-5 h-0.5 bg-gradient-to-r from-blue-400 to-transparent animate-pulse opacity-70" style={{animationDelay: '1s'}}></div>
+                </div>
               </div>
-              {/* Magical sparkles around the brain */}
-              <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-yellow-400 animate-sparkle" />
-              <Star className="absolute -bottom-2 -left-2 h-5 w-5 text-pink-400 animate-sparkle" style={{animationDelay: '1s'}} />
-              <Heart className="absolute top-1/2 -right-4 h-4 w-4 text-red-400 animate-sparkle" style={{animationDelay: '0.5s'}} />
+              
+              {/* Orbital magical sparkles */}
+              <Sparkles className="absolute -top-4 -right-4 h-8 w-8 text-yellow-400 animate-sparkle" />
+              <Star className="absolute -bottom-4 -left-4 h-6 w-6 text-pink-400 animate-sparkle" style={{animationDelay: '1s'}} />
+              <Heart className="absolute top-1/2 -right-6 h-5 w-5 text-red-400 animate-sparkle" style={{animationDelay: '0.5s'}} />
+              <Sparkles className="absolute bottom-1/4 -left-6 h-6 w-6 text-cyan-400 animate-sparkle" style={{animationDelay: '1.5s'}} />
+              
+              {/* Floating thought bubbles */}
+              <div className="absolute -top-8 left-1/2 w-3 h-3 bg-purple-300 rounded-full animate-bounce opacity-60" style={{animationDelay: '0.2s'}}></div>
+              <div className="absolute -top-12 left-1/2 w-2 h-2 bg-pink-300 rounded-full animate-bounce opacity-70" style={{animationDelay: '0.4s'}}></div>
+              <div className="absolute -top-16 left-1/2 w-1 h-1 bg-blue-300 rounded-full animate-bounce opacity-80" style={{animationDelay: '0.6s'}}></div>
             </div>
           </div>
           
