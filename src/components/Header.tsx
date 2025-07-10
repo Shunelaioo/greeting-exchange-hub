@@ -32,14 +32,18 @@ const Header = () => {
   useEffect(() => {
     if (user) {
       const fetchAvatar = async () => {
-        const { data } = await supabase
-          .from('profiles')
-          .select('avatar_url')
-          .eq('id', user.id)
-          .single();
-        
-        if (data?.avatar_url) {
-          setAvatarUrl(data.avatar_url);
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', user.id)
+            .single();
+          
+          if (!error && data?.avatar_url) {
+            setAvatarUrl(data.avatar_url);
+          }
+        } catch (error) {
+          console.error('Error fetching avatar:', error);
         }
       };
       fetchAvatar();

@@ -54,7 +54,7 @@ const AvatarUpload = ({ currentAvatar, userInitials, onAvatarChange }: AvatarUpl
       // Create a unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       // Upload file to Supabase storage
       const { error: uploadError } = await supabase.storage
