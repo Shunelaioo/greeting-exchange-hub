@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      mood_track: {
+        Row: {
+          created_at: string | null
+          id: string
+          interaction_with: string[] | null
+          mood: number | null
+          note: string | null
+          sleep_quality: string | null
+          user_id: string | null
+          weather: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          interaction_with?: string[] | null
+          mood?: number | null
+          note?: string | null
+          sleep_quality?: string | null
+          user_id?: string | null
+          weather?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          interaction_with?: string[] | null
+          mood?: number | null
+          note?: string | null
+          sleep_quality?: string | null
+          user_id?: string | null
+          weather?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

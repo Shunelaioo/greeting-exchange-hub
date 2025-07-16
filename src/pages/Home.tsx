@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Brain, Calendar, BarChart3, Heart, Zap, Sun, Sparkles, Star, Moon, Rainbow, Flower2 } from 'lucide-react';
+import { Brain, Calendar, BarChart3, Heart, Zap, Sun, Sparkles, Star, Moon, Rainbow, Flower2, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import EmotionalChatbot from '@/components/EmotionalChatbot';
 
 const Home = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const { user } = useAuth();
 
   const features = [
@@ -292,6 +296,23 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Chat Bubble */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={() => setIsChatOpen(true)}
+          className="h-16 w-16 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-200"
+        >
+          <MessageCircle className="h-8 w-8 text-white" />
+        </Button>
+      </div>
+
+      {/* Emotional Support Chat */}
+      {isChatOpen && (
+        <EmotionalChatbot
+          onClose={() => setIsChatOpen(false)}
+        />
+      )}
     </div>
   );
 };
