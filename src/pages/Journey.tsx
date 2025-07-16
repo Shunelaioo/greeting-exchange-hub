@@ -54,31 +54,33 @@ const Journey = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 py-12 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 dark:from-gray-900 dark:via-purple-900 dark:to-pink-900 py-12 relative overflow-hidden transition-colors">
         {/* Floating elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <Heart className="absolute top-20 left-20 h-8 w-8 text-pink-400 animate-float" />
           <Star className="absolute top-40 right-32 h-6 w-6 text-yellow-400 animate-sparkle" />
           <Sparkles className="absolute bottom-32 left-1/4 h-7 w-7 text-purple-400 animate-sparkle" style={{animationDelay: '1s'}} />
+          {/* Glowing orb for dark theme */}
+          <div className="absolute top-1/4 right-1/3 w-48 h-48 rounded-full bg-gradient-to-r from-white/30 to-purple-200/30 animate-pulse-glow blur-sm dark:block hidden"></div>
         </div>
         
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-2xl mx-auto text-center animate-fade-in">
-            <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 border border-white/50">
+            <div className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-10 border border-white/50 dark:border-white/20 transition-colors">
               <div className="relative mb-8">
                 <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full blur-lg opacity-50 animate-glow"></div>
                 <Heart className="relative h-20 w-20 text-pink-500 mx-auto animate-float" />
               </div>
               
-              <h1 className="text-4xl font-bold text-gray-800 mb-6">Thank You! 🎉</h1>
-              <p className="text-gray-600 mb-8 text-lg">Your mood journey has been recorded successfully.</p>
+              <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-6 transition-colors">Thank You! 🎉</h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg transition-colors">Your mood journey has been recorded successfully.</p>
               
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 mb-8 border border-purple-200/50">
-                <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 mr-2 text-purple-600" />
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-500/20 dark:to-pink-500/20 rounded-2xl p-6 mb-8 border border-purple-200/50 dark:border-white/20 transition-colors">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center justify-center transition-colors">
+                  <Sparkles className="h-5 w-5 mr-2 text-purple-600 dark:text-purple-400" />
                   Today's Support Message
                 </h3>
-                <p className="text-gray-700 italic text-lg leading-relaxed">"{getSupportMessage()}"</p>
+                <p className="text-gray-700 dark:text-gray-300 italic text-lg leading-relaxed transition-colors">"{getSupportMessage()}"</p>
               </div>
               
               <button
@@ -98,14 +100,20 @@ const Journey = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-100 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-100 dark:from-gray-900 dark:via-purple-900 dark:to-pink-900 py-12 relative overflow-hidden transition-colors">
       {/* Floating background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-40 h-40 rounded-full bg-gradient-to-r from-blue-300/30 to-purple-300/30 animate-float"></div>
-        <div className="absolute top-60 right-20 w-24 h-24 rounded-full bg-gradient-to-r from-pink-300/30 to-red-300/30 animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-20 left-10 w-40 h-40 rounded-full bg-gradient-to-r from-blue-300/30 to-purple-300/30 dark:from-blue-500/20 dark:to-purple-500/20 animate-float"></div>
+        <div className="absolute top-60 right-20 w-24 h-24 rounded-full bg-gradient-to-r from-pink-300/30 to-red-300/30 dark:from-pink-500/20 dark:to-red-500/20 animate-float" style={{animationDelay: '2s'}}></div>
+        
+        {/* Glowing orb for dark theme */}
+        <div className="absolute top-1/4 right-1/3 w-48 h-48 rounded-full bg-gradient-to-r from-white/30 to-purple-200/30 animate-pulse-glow blur-sm dark:block hidden"></div>
+        
         <Calendar className="absolute top-32 right-1/4 h-8 w-8 text-blue-400 animate-sparkle" />
         <Sun className="absolute bottom-40 left-20 h-6 w-6 text-yellow-400 animate-sparkle" style={{animationDelay: '1.5s'}} />
         <Moon className="absolute top-80 left-1/3 h-7 w-7 text-indigo-400 animate-sparkle" style={{animationDelay: '3s'}} />
+        <Star className="absolute top-1/3 left-10 h-4 w-4 text-yellow-400 animate-sparkle" style={{animationDelay: '2s'}} />
+        <Sparkles className="absolute bottom-20 right-10 h-5 w-5 text-purple-400 animate-sparkle" style={{animationDelay: '4s'}} />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
@@ -114,21 +122,21 @@ const Journey = () => {
           <div className="text-center mb-12 animate-fade-in">
             <div className="relative mb-8">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full blur-lg opacity-50 animate-glow"></div>
-              <Calendar className="relative h-20 w-20 text-blue-600 mx-auto" />
+              <Calendar className="relative h-20 w-20 text-blue-600 dark:text-blue-400 mx-auto transition-colors" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-6">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-800 dark:text-white mb-6 transition-colors">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 animate-gradient-shift">
                 Mood Journey
               </span>
             </h1>
-            <p className="text-gray-600 text-xl leading-relaxed max-w-2xl mx-auto">Track your daily emotions and receive personalized support on your wellness journey</p>
+            <p className="text-gray-600 dark:text-gray-300 text-xl leading-relaxed max-w-2xl mx-auto transition-colors">Track your daily emotions and receive personalized support on your wellness journey</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-10 border border-white/50 animate-fade-in">
+          <form onSubmit={handleSubmit} className="bg-white/80 dark:bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-10 border border-white/50 dark:border-white/20 animate-fade-in transition-colors">
             {/* Overall Mood */}
             <div className="mb-12">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center transition-colors">
                 <Star className="h-6 w-6 mr-3 text-yellow-500" />
                 How was your overall mood today?
               </h3>
@@ -141,11 +149,11 @@ const Journey = () => {
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 transform ${
                       journeyData.mood === option.value 
                         ? `${option.color} text-white border-transparent shadow-xl animate-glow` 
-                        : 'bg-white/70 border-gray-200 hover:border-gray-300 shadow-lg hover:shadow-xl'
+                        : 'bg-white/70 dark:bg-white/10 border-gray-200 dark:border-white/30 hover:border-gray-300 dark:hover:border-white/50 shadow-lg hover:shadow-xl'
                     }`}
                   >
                     <div className="text-3xl mb-2">{option.emoji}</div>
-                    <div className="text-sm font-semibold">{option.label}</div>
+                    <div className={`text-sm font-semibold ${journeyData.mood === option.value ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>{option.label}</div>
                   </button>
                 ))}
               </div>
@@ -153,7 +161,7 @@ const Journey = () => {
 
             {/* Weather */}
             <div className="mb-12">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center transition-colors">
                 <Cloud className="h-6 w-6 mr-3 text-blue-500" />
                 What was the weather like?
               </h3>
@@ -166,11 +174,11 @@ const Journey = () => {
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 transform shadow-lg hover:shadow-xl ${
                       journeyData.weather === option.value 
                         ? `bg-gradient-to-r ${option.gradient} text-white border-transparent animate-glow` 
-                        : 'bg-white/70 border-gray-200 hover:border-gray-300'
+                        : 'bg-white/70 dark:bg-white/10 border-gray-200 dark:border-white/30 hover:border-gray-300 dark:hover:border-white/50'
                     }`}
                   >
                     <div className="text-3xl mb-2">{option.emoji}</div>
-                    <div className="text-sm font-semibold">{option.label}</div>
+                    <div className={`text-sm font-semibold ${journeyData.weather === option.value ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>{option.label}</div>
                   </button>
                 ))}
               </div>
@@ -178,7 +186,7 @@ const Journey = () => {
 
             {/* Sleep */}
             <div className="mb-12">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+              <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center transition-colors">
                 <Bed className="h-6 w-6 mr-3 text-purple-500" />
                 How was your sleep?
               </h3>
@@ -191,12 +199,12 @@ const Journey = () => {
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 transform text-left shadow-lg hover:shadow-xl ${
                       journeyData.sleep === option.value 
                         ? `bg-gradient-to-r ${option.gradient} text-white border-transparent animate-glow` 
-                        : 'bg-white/70 border-gray-200 hover:border-gray-300'
+                        : 'bg-white/70 dark:bg-white/10 border-gray-200 dark:border-white/30 hover:border-gray-300 dark:hover:border-white/50'
                     }`}
                   >
                     <div className="flex items-center">
                       <span className="text-3xl mr-4">{option.emoji}</span>
-                      <span className="font-semibold">{option.label}</span>
+                      <span className={`font-semibold ${journeyData.sleep === option.value ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>{option.label}</span>
                     </div>
                   </button>
                 ))}
@@ -205,7 +213,7 @@ const Journey = () => {
 
             {/* Day Quality */}
             <div className="mb-12">
-              <label className="block text-2xl font-bold text-gray-800 mb-6">
+              <label className="block text-2xl font-bold text-gray-800 dark:text-white mb-6 transition-colors">
                 Rate your day overall (1-10):
               </label>
               <div className="relative">
@@ -217,9 +225,9 @@ const Journey = () => {
                   onChange={(e) => setJourneyData({...journeyData, dayQuality: e.target.value})}
                   className="w-full h-3 bg-gradient-to-r from-red-300 via-yellow-300 to-green-300 rounded-lg appearance-none cursor-pointer slider"
                 />
-                <div className="flex justify-between text-sm text-gray-500 mt-2">
+                <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2 transition-colors">
                   <span>😢 Poor</span>
-                  <span className="font-bold text-2xl text-gray-700 bg-white/80 px-4 py-2 rounded-full border-2 border-purple-300">
+                  <span className="font-bold text-2xl text-gray-700 dark:text-white bg-white/80 dark:bg-white/20 px-4 py-2 rounded-full border-2 border-purple-300 dark:border-purple-400 transition-colors">
                     {journeyData.dayQuality || '5'}
                   </span>
                   <span>😄 Great</span>
@@ -229,7 +237,7 @@ const Journey = () => {
 
             {/* Notes */}
             <div className="mb-10">
-              <label className="block text-2xl font-bold text-gray-800 mb-6">
+              <label className="block text-2xl font-bold text-gray-800 dark:text-white mb-6 transition-colors">
                 <Sparkles className="inline h-6 w-6 mr-2 text-purple-500" />
                 Additional thoughts (optional):
               </label>
@@ -237,7 +245,7 @@ const Journey = () => {
                 value={journeyData.notes}
                 onChange={(e) => setJourneyData({...journeyData, notes: e.target.value})}
                 placeholder="How are you feeling? What happened today? Any thoughts you'd like to record... ✨"
-                className="w-full p-6 border-2 border-gray-300 rounded-2xl focus:ring-4 focus:ring-purple-200 focus:border-purple-400 resize-none bg-white/70 backdrop-blur-sm text-lg"
+                className="w-full p-6 border-2 border-gray-300 dark:border-white/30 rounded-2xl focus:ring-4 focus:ring-purple-200 dark:focus:ring-purple-500/30 focus:border-purple-400 resize-none bg-white/70 dark:bg-white/10 backdrop-blur-sm text-lg text-gray-700 dark:text-white placeholder-gray-400 transition-colors"
                 rows={4}
               />
             </div>
